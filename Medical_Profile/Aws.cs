@@ -1,0 +1,254 @@
+﻿using global::System.Collections.Generic;
+using global::System.IO;
+using global::System.Threading.Tasks;
+using global::Flurl.Http;
+using global::Newtonsoft.Json;
+
+namespace Medical_Profile
+{
+ internal static class Aws
+ {
+  public async static Task<Level1_Return> Get_Level1_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   var l1 = new Level1_Return();
+   if (File.Exists("l1ret.json"))
+   {
+    using (var sr = new StreamReader("l1ret.json"))
+    {
+     string l1d = sr.ReadToEnd();
+     l1 = JsonConvert.DeserializeObject<Level1_Return>(l1d);
+     return l1;
+    }
+   }
+
+   Mret m1;
+   var bpl = new Dictionary<string, object>(bp);
+   bpl["Call_vector"] = 5000;
+   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
+    m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
+    if (m1.status == 200)
+    {
+     l1 = JsonConvert.DeserializeObject<Level1_Return>(m1.body);
+    }
+    else
+    {
+     l1.code = m1.status;
+     l1.message = m1.message;
+    }
+   }
+
+   return l1;
+  }
+
+  public async static Task<Dsave_return> Save_exception(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   var Dr = new Dsave_return();
+   Mret M1 = null;
+   var Bpl = new Dictionary<string, object>(bp);
+   Bpl["Call_vector"] = 6725;
+   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    try
+    {
+     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     if (M1.status == 200)
+     {
+      Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
+     }
+     else
+     {
+      Dr.code = M1.status;
+      Dr.message = M1.message;
+     }
+    }
+    catch (FlurlHttpException ex)
+    {
+     int i = 1;
+    }
+   }
+
+   return Dr;
+  }
+
+  public async static Task<Dsave_return> Pat_delete_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   var Dr = new Dsave_return();
+   Mret M1 = null;
+   var Bpl = new Dictionary<string, object>(bp);
+   Bpl["Call_vector"] = 5184;
+   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    try
+    {
+     // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
+     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     if (M1.status == 200)
+     {
+      Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
+     }
+     else
+     {
+      Dr.code = M1.status;
+      Dr.message = M1.message;
+     }
+    }
+    catch (FlurlHttpException ex)
+    {
+     int i = 1;
+    }
+   }
+
+   return Dr;
+  }
+
+  public async static Task<Dsave_return> Pat_save_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   var Dr = new Dsave_return();
+   Mret M1 = null;
+   var Bpl = new Dictionary<string, object>(bp);
+   Bpl["Call_vector"] = 5163;
+   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    try
+    {
+     // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
+     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     if (M1.status == 200)
+     {
+      Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
+     }
+     else
+     {
+      Dr.code = M1.status;
+      Dr.message = M1.message;
+     }
+    }
+    catch (FlurlHttpException ex)
+    {
+     int i = 1;
+    }
+   }
+
+   return Dr;
+  }
+
+  public async static Task<Dsave_return> Dsave_get_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   var Dvr = new Dsave_return();
+   Mret M1 = null;
+   var Bpl = new Dictionary<string, object>(bp);
+   if (File.Exists("dsave_get_return.json"))
+   {
+    using (var sr = new StreamReader("dsave_get_return.json"))
+    {
+     string l1d = sr.ReadToEnd();
+     Dvr = JsonConvert.DeserializeObject<Dsave_return>(l1d);
+     return Dvr;
+    }
+   }
+
+   Bpl["Call_vector"] = 7943;
+   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    try
+    {
+     // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
+     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     if (M1.status == 200)
+     {
+      Dvr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
+     }
+     else
+     {
+      Dvr.code = M1.status;
+      Dvr.message = M1.message;
+     }
+    }
+    catch (FlurlHttpException ex)
+    {
+     int i = 1;
+    }
+   }
+
+   return Dvr;
+  }
+
+  public async static Task<Level2_Return> Get_Level2_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   var l2 = new Level2_Return();
+   if (File.Exists("l2ret.json"))
+   {
+    Mret m2 = null;
+    using (var sr = new StreamReader("l2ret.json"))
+    {
+     string l2d = sr.ReadToEnd();
+     // l2d = l2d.Replace("\", String.Empty)
+     // m2 = JsonConvert.DeserializeObject(Of mret)(l2d)
+     l2 = JsonConvert.DeserializeObject<Level2_Return>(l2d);
+     return l2;
+    }
+   }
+
+   Mret m1 = null;
+   var bpl = new Dictionary<string, object>(bp);
+   bpl["Call_vector"] = 6000;
+   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    try
+    {
+     // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
+     m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
+     if (m1.status == 200)
+     {
+      l2 = JsonConvert.DeserializeObject<Level2_Return>(m1.body);
+     }
+     else
+     {
+      l2.code = m1.status;
+      l2.message = m1.message;
+     }
+    }
+    catch (FlurlHttpException ex)
+    {
+     int i = 1;
+    }
+   }
+
+   return l2;
+  }
+
+  public async static Task<Register_Return> Register_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   Register_Return Rv = null;
+   Mret m1 = null;
+   var bpl = new Dictionary<string, object>(bp);
+   bpl["Call_vector"] = 4152;
+   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
+    m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
+   }
+
+   if (m1.status == 200)
+   {
+    Rv = JsonConvert.DeserializeObject<Register_Return>(m1.body);
+   }
+   else
+   {
+    Rv.code = m1.status;
+    Rv.message = m1.message;
+   }
+
+   return Rv;
+  }
+ }
+}
