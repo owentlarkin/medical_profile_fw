@@ -6,10 +6,6 @@ using System.Diagnostics;
 using System.Drawing;
 using global::System.IO;
 using System.Linq;
-// Imports JR.Utils.GUI.Forms
-// Imports Medical_Profile.JR.Utils.GUI.Forms
-// Imports System.ServiceModel
-// Imports System.Windows.Threading
 using global::System.Reflection.Emit;
 using global::System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -79,8 +75,8 @@ namespace Medical_Profile
 
   private Form1()
   {
-   string fnam = null;
-   string fs = null;
+  // string fnam = null;
+ //  string fs = null;
    try
    {
     SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
@@ -200,7 +196,7 @@ namespace Medical_Profile
  
   private int Handle_testmode(string un)
   {
-   int n = default;
+//   int n = default;
    MPC_User mpu;
    string ds;
    Document item;
@@ -243,7 +239,7 @@ namespace Medical_Profile
   
   private int Handle_usb(string dle)
   {
-   int n = default;
+   //  int n = default;
    string fs;
    string it;
    string d1 = null;
@@ -365,7 +361,7 @@ namespace Medical_Profile
 
   private bool Check_lines()
   {
-   int lc = 0;
+ //  int lc = 0;
    string[] li;
    string lis;
    var lin = new List<string>();
@@ -891,16 +887,16 @@ namespace Medical_Profile
    int blockno = 1;
    int i;
    int k;
-   string fs = null;
+ //  string fs = null;
    ToolStripMenuItem tsi;
    ToolStripMenuItem ins;
    ToolStripMenuItem swp;
    ContextMenuStrip cm;
    GroupBox obox;
-   object o1 = null;
-   string fnam = null;
-   Ath_block abp = null;
-   string l1cfn = null;
+///  object o1 = null;
+  // string fnam = null;
+//   Ath_block abp = null;
+//   string l1cfn = null;
    loading = true;
    if (run_timer)
    {
@@ -914,7 +910,7 @@ namespace Medical_Profile
    var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile");
    drive_label_encoded = null;
    eval_encoded = null;
-   fnam = null;
+ //  fnam = null;
    ath_blist.Clear();
    installed_version = Conversions.ToString(key.GetValue("version", null));
 
@@ -1330,7 +1326,7 @@ namespace Medical_Profile
    int pline;
    RichTextBox rtb;
    TextBox tb;
-   int ln = 0;
+ //  int ln = 0;
    Blk_info bi = null;
    int bn = 0;
    foreach (Control cb in Controls)
@@ -1345,7 +1341,7 @@ namespace Medical_Profile
      bi = blocks[bn];
      bi.lines = rtb.Lines.Length;
      bi.ll = new int[bi.lines + 1];
-     ln = 0;
+    // ln = 0;
      Set_ll(rtb, bn);
      if ((ls ?? "") == "File")
      {
@@ -2093,7 +2089,7 @@ namespace Medical_Profile
    int pnystart = 0;
    int pnxsize = 0;
    int pnysize = 0;
-   int bnum = 0;
+ //  int bnum = 0;
    var bmni = new List<ToolStripMenuItem>();
    bmni.Clear();
    if (emppn is object)
@@ -2129,7 +2125,6 @@ namespace Medical_Profile
     emppn.Size = new Size(pnxsize, pnysize);
    }
 
-   bool Rebuild_Endpoints = false;
    foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
    {
     var b = k.Value;
@@ -2194,8 +2189,8 @@ namespace Medical_Profile
   private async void Patientid_Leave(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
-   string fs = null;
-   string fn = null;
+  //string fs = null;
+  // string fn = null;
    aws_body.Clear();
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
@@ -2819,8 +2814,8 @@ namespace Medical_Profile
   private async void Patientid_Validated(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
-   string fs = null;
-   string fn = null;
+ //  string fs = null;
+ //  string fn = null;
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
     return;
@@ -2890,8 +2885,8 @@ namespace Medical_Profile
   private async void Patient_Validated(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
-   string fs = null;
-   string fn = null;
+ //  string fs = null;
+ //  string fn = null;
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
     return;

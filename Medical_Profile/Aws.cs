@@ -3,6 +3,7 @@ using global::System.IO;
 using global::System.Threading.Tasks;
 using global::Flurl.Http;
 using global::Newtonsoft.Json;
+using System.Windows.Forms;
 
 namespace Medical_Profile
 {
@@ -65,9 +66,11 @@ namespace Medical_Profile
       Dr.message = M1.message;
      }
     }
+#pragma warning disable CS0168 // Variable is declared but never used
     catch (FlurlHttpException ex)
+#pragma warning restore CS0168 // Variable is declared but never used
     {
-     int i = 1;
+     MessageBox.Show(ex.Message);
     }
    }
 
@@ -97,7 +100,9 @@ namespace Medical_Profile
       Dr.message = M1.message;
      }
     }
+#pragma warning disable CS0168 // Variable is declared but never used
     catch (FlurlHttpException ex)
+#pragma warning restore CS0168 // Variable is declared but never used
     {
      int i = 1;
     }
@@ -129,7 +134,9 @@ namespace Medical_Profile
       Dr.message = M1.message;
      }
     }
+#pragma warning disable CS0168 // Variable is declared but never used
     catch (FlurlHttpException ex)
+#pragma warning restore CS0168 // Variable is declared but never used
     {
      int i = 1;
     }
@@ -171,7 +178,9 @@ namespace Medical_Profile
       Dvr.message = M1.message;
      }
     }
+#pragma warning disable CS0168 // Variable is declared but never used
     catch (FlurlHttpException ex)
+#pragma warning restore CS0168 // Variable is declared but never used
     {
      int i = 1;
     }
@@ -216,7 +225,9 @@ namespace Medical_Profile
       l2.message = m1.message;
      }
     }
+#pragma warning disable CS0168 // Variable is declared but never used
     catch (FlurlHttpException ex)
+#pragma warning restore CS0168 // Variable is declared but never used
     {
      int i = 1;
     }

@@ -55,12 +55,16 @@ namespace Medical_Profile.Enc
     var dict = decoder.DecodeToObject<IDictionary<string, object>>(token, NewKey(secret, salt, iter), verify: true);
     return dict;
    }
+#pragma warning disable CS0168 // Variable is declared but never used
    catch (TokenExpiredException ex)
+#pragma warning restore CS0168 // Variable is declared but never used
    {
     rdict["Error"] = "Token has expired";
     return rdict;
    }
+#pragma warning disable CS0168 // Variable is declared but never used
    catch (SignatureVerificationException ex)
+#pragma warning restore CS0168 // Variable is declared but never used
    {
     rdict["Error"] = "Token has invalid signature";
     return rdict;
