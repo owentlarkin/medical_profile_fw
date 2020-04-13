@@ -70,7 +70,7 @@ namespace Medical_Profile
     // 
     using (var docOutput = pdcNew)
     {
-     if (PrinterName > "")
+     if (PrinterName != "")
      {
       docOutput.PrinterSettings.PrinterName = PrinterName;
      }

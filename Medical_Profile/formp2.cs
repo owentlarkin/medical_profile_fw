@@ -46,21 +46,21 @@ namespace Medical_Profile
   public string enck = null;
   public string read_patient;
 
-  public static void Main()
-  {
-   try
-   {
-    Application.EnableVisualStyles();
-    Application.SetCompatibleTextRenderingDefault(false);
-    Application.Run(new Form1());
-   }
-   catch (Exception ex)
-   {
-    string s = Format_exception(ex);
-    Interaction.MsgBox("Exception", MsgBoxStyle.OkOnly, s);
-    Application.Exit();
-   }
-  }
+  //public static void Main()
+  //{
+  // try
+  // {
+  //  Application.EnableVisualStyles();
+  //  Application.SetCompatibleTextRenderingDefault(false);
+  //  Application.Run(new Form1());
+  // }
+  // catch (Exception ex)
+  // {
+  //  string s = Format_exception(ex);
+  //  Interaction.MsgBox("Exception", MsgBoxStyle.OkOnly, s);
+  //  Application.Exit();
+  // }
+  //}
 
   public bool Check_altered()
   {
@@ -378,16 +378,16 @@ namespace Medical_Profile
      dfound = k.Value.name;
     }
 
-    if ((My.MySettingsProperty.Settings.department ?? "") == (k.Value.name ?? ""))
+    if ((Properties.Settings.Default.department ?? "") == (k.Value.name ?? ""))
     {
      dfound = k.Value.name;
     }
    }
 
-   if (!((My.MySettingsProperty.Settings.department ?? "") == (dfound ?? "")))
+   if (!((Properties.Settings.Default.department ?? "") == (dfound ?? "")))
    {
-    My.MySettingsProperty.Settings.department = dfound;
-    My.MySettingsProperty.Settings.Save();
+    Properties.Settings.Default.department = dfound;
+    Properties.Settings.Default.Save();
    }
 
    Department.SelectedIndex = 0;
@@ -571,6 +571,17 @@ namespace Medical_Profile
 
     atpv[p.Providerid] = s1;
     prv_combo.Items.Add(s1);
+   }
+
+   if (prv_combo.Items.Count > 1)
+   {
+    priph.Visible = false;
+    prv_combo.Visible = true;
+   }
+   else
+   {
+    prv_combo.Visible = false;
+    priph.Visible = true;
    }
 
    Message_label.Text = null;
@@ -1030,7 +1041,7 @@ namespace Medical_Profile
    string format = "MM/dd/yyyy HH:mm:ss";
    if (logfile == default)
    {
-    logfile = My.MySettingsProperty.Settings.start_dir + @"\medical_profile.log";
+    logfile = Properties.Settings.Default.start_dir + @"\medical_profile.log";
    }
 
    if (File.Exists(logfile))

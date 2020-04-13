@@ -8,15 +8,15 @@ namespace Medical_Profile.My
  // UnhandledException: Raised if the application encounters an unhandled exception.
  // StartupNextInstance: Raised when launching a single-instance application and the application is already active. 
  // NetworkAvailabilityChanged: Raised when the network connection is connected or disconnected.
- internal partial class MyApplication
- {
-  private async void MyApplication_UnhandledException(object sender, Microsoft.VisualBasic.ApplicationServices.UnhandledExceptionEventArgs e)
-  {
-   string Header = "Unhandled Exception";
-   string s = MyProject.Forms.Form1.Fe(e.Exception, Header);
-   int rc;
-   rc = await MyProject.Forms.Form1.Write_exception(s, true);
-   Environment.Exit(0);
-  }
- }
+ //internal partial class form1
+ //{
+ // private async void MyApplication_UnhandledException(object sender, Microsoft.VisualBasic.ApplicationServices.UnhandledExceptionEventArgs e)
+ // {
+ //  string Header = "Unhandled Exception";
+ //  string s = MyProject.Forms.Form1.Fe(e.Exception, Header);
+ //  int rc;
+ //  rc = await MyProject.Forms.Form1.Write_exception(s, true);
+ //  Environment.Exit(0);
+ // }
+ //}
 }

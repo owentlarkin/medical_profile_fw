@@ -18,10 +18,11 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using global::Microsoft.Win32;
 using global::Newtonsoft.Json;
+using System.Text;
 
 namespace Medical_Profile
 {
- public partial class Form1:Form
+ public partial class Form1 : Form
  {
   private System.Collections.Specialized.StringCollection Endpoints_in_use = new System.Collections.Specialized.StringCollection();
   private string drive_label = null;
@@ -73,10 +74,10 @@ namespace Medical_Profile
 
   private Data_state Dstate = Data_state.NoEdit;
 
-  private Form1()
+  public Form1()
   {
-  // string fnam = null;
- //  string fs = null;
+   // string fnam = null;
+   //  string fs = null;
    try
    {
     SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
@@ -93,11 +94,11 @@ namespace Medical_Profile
     cv[8] = (char)(Strings.Asc(title[13]) - 8);
     cv[10] = (char)Strings.Asc(title[1]);
     cv[11] = (char)Strings.Asc(title[36]);
-    if (My.MySettingsProperty.Settings.first_run_flag)
+    if (Properties.Settings.Default.first_run_flag)
     {
      first_run = true;
-     My.MySettingsProperty.Settings.first_run_flag = false;
-     My.MySettingsProperty.Settings.Save();
+     Properties.Settings.Default.first_run_flag = false;
+     Properties.Settings.Default.Save();
     }
     else
     {
@@ -128,7 +129,7 @@ namespace Medical_Profile
      };
      var p2 = Process.Start(pi2);
      p2.WaitForExit();
-     My.MySettingsProperty.Settings.Save();
+     Properties.Settings.Default.Save();
      Application.Exit();
     }
    }
@@ -193,10 +194,10 @@ namespace Medical_Profile
    return s1.Substring(0, insert_loc) + s2 + s1.Substring(insert_loc);
   }
 
- 
+
   private int Handle_testmode(string un)
   {
-//   int n = default;
+   //   int n = default;
    MPC_User mpu;
    string ds;
    Document item;
@@ -236,7 +237,7 @@ namespace Medical_Profile
    file_access = true;
    return 0;
   }
-  
+
   private int Handle_usb(string dle)
   {
    //  int n = default;
@@ -361,7 +362,7 @@ namespace Medical_Profile
 
   private bool Check_lines()
   {
- //  int lc = 0;
+   //  int lc = 0;
    string[] li;
    string lis;
    var lin = new List<string>();
@@ -389,7 +390,7 @@ namespace Medical_Profile
     y_space_needed = nlead * 2;
     if (currenty > label_header)
     {
-     y_space_needed += nlead /2;
+     y_space_needed += nlead / 2;
     }
 
     if (ylimit - currenty < y_space_needed)
@@ -887,16 +888,16 @@ namespace Medical_Profile
    int blockno = 1;
    int i;
    int k;
- //  string fs = null;
+   //  string fs = null;
    ToolStripMenuItem tsi;
    ToolStripMenuItem ins;
    ToolStripMenuItem swp;
    ContextMenuStrip cm;
    GroupBox obox;
-///  object o1 = null;
-  // string fnam = null;
-//   Ath_block abp = null;
-//   string l1cfn = null;
+   ///  object o1 = null;
+   // string fnam = null;
+   //   Ath_block abp = null;
+   //   string l1cfn = null;
    loading = true;
    if (run_timer)
    {
@@ -910,16 +911,16 @@ namespace Medical_Profile
    var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile");
    drive_label_encoded = null;
    eval_encoded = null;
- //  fnam = null;
+   //  fnam = null;
    ath_blist.Clear();
    installed_version = Conversions.ToString(key.GetValue("version", null));
 
 
    /* TODO ERROR: Skipped IfDirectiveTrivia */
-   if (!((My.MySettingsProperty.Settings.User_number ?? "") == (string.Empty ?? "")))
+   if (!((Properties.Settings.Default.User_number ?? "") == (string.Empty ?? "")))
    {
     testmode = true;
-    Handle_testmode(My.MySettingsProperty.Settings.User_number);
+    Handle_testmode(Properties.Settings.Default.User_number);
    }
    /* TODO ERROR: Skipped EndIfDirectiveTrivia */
    if (!testmode)
@@ -969,20 +970,20 @@ namespace Medical_Profile
     }
    }
 
-   if (My.MySettingsProperty.Settings.endpoints is null)
+   if (Properties.Settings.Default.endpoints is null)
    {
-    My.MySettingsProperty.Settings.endpoints = new System.Collections.Specialized.StringCollection();
+    Properties.Settings.Default.endpoints = new System.Collections.Specialized.StringCollection();
    }
 
-   if (My.MySettingsProperty.Settings.endpoints.Count == 0)
+   if (Properties.Settings.Default.endpoints.Count == 0)
    {
     string json = JsonConvert.SerializeObject(Mpck, Formatting.Indented);
     foreach (string s in Mpck.Blocklist)
-     My.MySettingsProperty.Settings.endpoints.Add(s);
-    My.MySettingsProperty.Settings.Save();
+     Properties.Settings.Default.endpoints.Add(s);
+    Properties.Settings.Default.Save();
    }
 
-   foreach (string s in My.MySettingsProperty.Settings.endpoints)
+   foreach (string s in Properties.Settings.Default.endpoints)
     Endpoints_in_use.Add(s);
    secph.Text = "";
    sp.Text = "";
@@ -1188,7 +1189,6 @@ namespace Medical_Profile
    {
     MessageBox.Show(ex.Message);
    }
-
    Printers.Items.Clear();
    pnames = Framework.GetPrinters();
    foreach (var p in pnames)
@@ -1198,7 +1198,7 @@ namespace Medical_Profile
     Printers.SelectedIndex = 0;
    }
 
-   printer = pnames.GetPrinterByName(Conversions.ToString(Printers.SelectedItem));
+   printer = pnames.GetPrinterByName(Printers.SelectedItem.ToString());
    if (printer is ILabelWriterPrinter)
    {
     labelWriterPrinter = (ILabelWriterPrinter)printer;
@@ -1212,10 +1212,10 @@ namespace Medical_Profile
 
    Reset_fields();
    //base.ResumePaint();
-   if (My.MySettingsProperty.Settings.first_run_flag)
+   if (Properties.Settings.Default.first_run_flag)
    {
-    My.MySettingsProperty.Settings.first_run_flag = false;
-    My.MySettingsProperty.Settings.Save();
+    Properties.Settings.Default.first_run_flag = false;
+    Properties.Settings.Default.Save();
     Close();
    }
 
@@ -1253,6 +1253,7 @@ namespace Medical_Profile
    Practice.Text = L1_ret.Prc.name;
    Load_Department(L1_ret);
    Load_providers(L1_ret);
+
    foreach (string s in L1_ret.Block_names)
    {
     var b = new Blk_entry()
@@ -1264,12 +1265,14 @@ namespace Medical_Profile
    }
 
    Set_saved_items(L1_ret.dsl);
+
    Patientid.Select();
+
    loading = false;
    Data_altered = false;
    Dstate = Data_state.NoEdit;
-   priph.Visible = true;
-   prv_combo.Visible = false;
+ //  priph.Visible = true;
+ //  prv_combo.Visible = false;
    if (run_timer)
    {
     Ettb.Text = stop_timer(SW);
@@ -1326,7 +1329,7 @@ namespace Medical_Profile
    int pline;
    RichTextBox rtb;
    TextBox tb;
- //  int ln = 0;
+   //  int ln = 0;
    Blk_info bi = null;
    int bn = 0;
    foreach (Control cb in Controls)
@@ -1341,7 +1344,7 @@ namespace Medical_Profile
      bi = blocks[bn];
      bi.lines = rtb.Lines.Length;
      bi.ll = new int[bi.lines + 1];
-    // ln = 0;
+     // ln = 0;
      Set_ll(rtb, bn);
      if ((ls ?? "") == "File")
      {
@@ -1416,16 +1419,16 @@ namespace Medical_Profile
   private void DocumentMenuItem_Click(object sender, EventArgs e)
   {
    lines_setting = "File";
-   My.MySettingsProperty.Settings.lines_setting = lines_setting;
-   My.MySettingsProperty.Settings.Save();
+   Properties.Settings.Default.lines_setting = lines_setting;
+   Properties.Settings.Default.Save();
    Redo_blocks(lines_setting);
   }
 
   private void LabelMenuItem_Click(object sender, EventArgs e)
   {
    lines_setting = "Label";
-   My.MySettingsProperty.Settings.lines_setting = lines_setting;
-   My.MySettingsProperty.Settings.Save();
+   Properties.Settings.Default.lines_setting = lines_setting;
+   Properties.Settings.Default.Save();
    Redo_blocks(lines_setting);
   }
 
@@ -1450,7 +1453,7 @@ namespace Medical_Profile
    {
     gb = (GroupBox)sender;
     field = gb.Name;
-    if(!field.StartsWith("GB"))
+    if (!field.StartsWith("GB"))
      return;
    }
 
@@ -1727,7 +1730,8 @@ namespace Medical_Profile
    tsi.Visible = false;
   }
 
-  private void Set_ro(Control ctrl)  {
+  private void Set_ro(Control ctrl)
+  {
    TextBox tb;
    RichTextBox rb;
    if (ctrl is TextBox)
@@ -2089,7 +2093,7 @@ namespace Medical_Profile
    int pnystart = 0;
    int pnxsize = 0;
    int pnysize = 0;
- //  int bnum = 0;
+   //  int bnum = 0;
    var bmni = new List<ToolStripMenuItem>();
    bmni.Clear();
    if (emppn is object)
@@ -2174,10 +2178,10 @@ namespace Medical_Profile
 
     if (tbiu.Count != Endpoints_in_use.Count)
     {
-     My.MySettingsProperty.Settings.endpoints = new System.Collections.Specialized.StringCollection();
+     Properties.Settings.Default.endpoints = new System.Collections.Specialized.StringCollection();
      foreach (string s in tbiu)
-      My.MySettingsProperty.Settings.endpoints.Add(s);
-     My.MySettingsProperty.Settings.Save();
+      Properties.Settings.Default.endpoints.Add(s);
+     Properties.Settings.Default.Save();
     }
 
     Update();
@@ -2189,8 +2193,8 @@ namespace Medical_Profile
   private async void Patientid_Leave(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
-  //string fs = null;
-  // string fn = null;
+   //string fs = null;
+   // string fn = null;
    aws_body.Clear();
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
@@ -2408,7 +2412,7 @@ namespace Medical_Profile
     k.Value.Num = 0;
    }
 
-   My.MySettingsProperty.Settings.endpoints = null;
+   Properties.Settings.Default.endpoints = null;
    foreach (KeyValuePair<int, string> s in bl_available)
    {
     Controls[s.Value].Visible = false;
@@ -2417,11 +2421,11 @@ namespace Medical_Profile
    }
 
    Scsiz(Width, originaly);
-   My.MySettingsProperty.Settings.endpoints = new System.Collections.Specialized.StringCollection();
+   Properties.Settings.Default.endpoints = new System.Collections.Specialized.StringCollection();
    foreach (string s in Mpck.Blocklist)
-    My.MySettingsProperty.Settings.endpoints.Add(s);
-   My.MySettingsProperty.Settings.Save();
-   Endpoints_in_use = My.MySettingsProperty.Settings.endpoints;
+    Properties.Settings.Default.endpoints.Add(s);
+   Properties.Settings.Default.Save();
+   Endpoints_in_use = Properties.Settings.Default.endpoints;
    if (L2_ret is object)
    {
     foreach (string b in Endpoints_in_use)
@@ -2490,7 +2494,7 @@ namespace Medical_Profile
 
   private void Previewmenuitem_Click(object sender, EventArgs e)
   {
-   var pfrm = new Form();
+   var pfrm = new Form3();
    int pccnt;
    int prcnt;
    PictureBox pb;
@@ -2563,7 +2567,7 @@ namespace Medical_Profile
         Text = "Print",
         Name = gblabels[ind]
        };
-       Tsi.Click += My.MyProject.Forms.Form3.Print_Panel;
+       //  Tsi.Click += pfrm. My.MyProject.Forms.Form3.Print_Panel;
        Cms.Items.Add(Tsi);
        pnl.ContextMenuStrip = Cms;
        tbl.Controls.Add(pnl, j, i);
@@ -2612,13 +2616,16 @@ namespace Medical_Profile
     Patient.BackColor = System.Drawing.Color.White;
    }
 
-   // If prv_combo.Items.Count > 1 Then
-   // priph.Visible = False
-   // prv_combo.Visible = True
-   // Else
-   // prv_combo.Visible = False
-   // priph.Visible = True
-   // End If
+   if (prv_combo.Items.Count > 1)
+   {
+    priph.Visible = false;
+    prv_combo.Visible = true;
+   }
+   else
+   {
+    prv_combo.Visible = false;
+    priph.Visible = true;
+   }
 
    if (bset & prv_combo.Items.Count > 1)
    {
@@ -2814,8 +2821,8 @@ namespace Medical_Profile
   private async void Patientid_Validated(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
- //  string fs = null;
- //  string fn = null;
+   //  string fs = null;
+   //  string fn = null;
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
     return;
@@ -2885,8 +2892,8 @@ namespace Medical_Profile
   private async void Patient_Validated(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
- //  string fs = null;
- //  string fn = null;
+   //  string fs = null;
+   //  string fn = null;
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
     return;
@@ -3503,10 +3510,34 @@ namespace Medical_Profile
    e.Graphics.FillRectangle(new SolidBrush(bc), R);
    if (Conversions.ToBoolean(e.State & DrawItemState.Selected))
    {
+    StringBuilder stb = new StringBuilder();
+    stb.Append("dsaves DI 1 State[");
+    stb.Append(e.State.ToString());
+    stb.Append("] Rect[");
+    stb.Append(R.Width.ToString());
+    stb.Append(",");
+    stb.Append(R.Height.ToString());
+    stb.Append("] string[");
+    stb.Append(str);
+    stb.Append("]");
+
+    Console.WriteLine(stb.ToString());
     e.Graphics.DrawString(str, scb_font, Brushes.Black, R);
    }
    else
    {
+    StringBuilder stb = new StringBuilder();
+    stb.Append("dsaves DI 2 State[");
+    stb.Append(e.State.ToString());
+    stb.Append("] Rect[");
+    stb.Append(R.Width.ToString());
+    stb.Append(",");
+    stb.Append(R.Height.ToString());
+    stb.Append("] string[");
+    stb.Append(str);
+    stb.Append("]");
+
+    Console.WriteLine(stb.ToString());
     e.Graphics.DrawString(str, scr_font, Brushes.Black, R);
    }
 
