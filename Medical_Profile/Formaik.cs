@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using global::JWT;
 using global::Microsoft.Win32;
+using Enc;
 
 namespace Medical_Profile
 {
@@ -42,14 +43,14 @@ namespace Medical_Profile
    var Rkey = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
    if (Key.Text is object && !((Key.Text ?? "") == (string.Empty ?? "")))
    {
-    key_encrypted = Enc.Enc256.Encrypt(Key.Text, Enc.Enc256.Scramble(keys));
-    salt = Enc.Enc256.Getsalt(key_encrypted);
+    key_encrypted = Enc256.Encrypt(Key.Text, Enc256.Scramble(keys));
+    salt = Enc256.Getsalt(key_encrypted);
     var payload = new Dictionary<string, object>() { { "aud", "http://medicalprofilecard.com" }, { "exp", ew.ToUnixTimeSeconds() }, { "register", key_encrypted } };
     aws_body["vector_code"] = "4152";
     Application.UseWaitCursor = true;
     mcd = await Aws.Register_aysnc(installation_url, keys, salt, payload, aws_body);
     Application.UseWaitCursor = false;
-    mtyenc = Enc.Enc256.Decrypt(mcd.eval, Enc.Enc256.Scramble(keys), 18926);
+    mtyenc = Enc256.Decrypt(mcd.eval, Enc256.Scramble(keys), 18926);
     if (mtyenc is object)
     {
      Rkey.SetValue("eval", mtyenc);

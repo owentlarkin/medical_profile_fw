@@ -6,9 +6,9 @@ namespace Medical_Profile
 {
  internal class Blk_entry
  {
+ public string header { get; set; }
   public int State { get; set; }
   public int Num { get; set; }
-  public GroupBox Gb { get; set; }
  }
 
  /* TODO ERROR: Skipped IfDirectiveTrivia */

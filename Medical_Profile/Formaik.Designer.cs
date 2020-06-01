@@ -3,11 +3,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace Medical_Profile
 {
- [DesignerGenerated()]
  public partial class Formaik : Form
  {
 
@@ -37,6 +35,7 @@ namespace Medical_Profile
   [DebuggerStepThrough()]
   private void InitializeComponent()
   {
+   this.components = new System.ComponentModel.Container();
    var resources = new System.ComponentModel.ComponentResourceManager(typeof(Formaik));
    _Label1 = new Label();
    _Key = new TextBox();
@@ -89,7 +88,7 @@ namespace Medical_Profile
    Controls.Add(_Done);
    Controls.Add(_Key);
    Controls.Add(_Label1);
-   Font = new Font("Calibri", 11.25F, FontStyle.Bold, GraphicsUnit.Point, Conversions.ToByte(0));
+   Font = new Font("Calibri", 11.25F, FontStyle.Bold, GraphicsUnit.Point);
    Icon = (Icon)resources.GetObject("$this.Icon");
    Margin = new Padding(4);
    Name = "Formaik";

@@ -4,8 +4,6 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,12 +11,13 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Enc;
 
 namespace Medical_Profile
 {
  public partial class Form1
  {
-  private IDieCutLabel Label;
+  private DieCutLabel Label;
   private StyledTextBuilder stb = new StyledTextBuilder();
   public StyledTextBuilder htb = new StyledTextBuilder();
   public StyledTextBlock lt;
@@ -37,7 +36,7 @@ namespace Medical_Profile
   public ILabelWriterPrinter labelWriterPrinter;
   public ILabelWriterPrintParams lprintparams;
   public IPrintParams printParams;
-  public IPrintJob pjob;
+  public PrintJob pjob;
   public float name_length = 0.0F;
   public List<FileInfo> fi = new List<FileInfo>();
   public FontInfo nfnt = new FontInfo("Calibri", 12.0, DYMO.Label.Framework.FontStyle.Bold);
@@ -65,7 +64,7 @@ namespace Medical_Profile
   public bool Check_altered()
   {
    DialogResult res;
-   string msg = "You have unprocessed changes" + Constants.vbCrLf + "do you want to save these changes?";
+   string msg = "You have unprocessed changes" + "\r\n" + "do you want to save these changes?";
    if (!Data_altered)
    {
     return false;
@@ -125,13 +124,13 @@ namespace Medical_Profile
    {
     case 1:
      {
-      ds.Name = Enc.Enc256.Decrypt(ds.Skey, Enc.Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
+      ds.Name = Enc256.Decrypt(ds.Skey, Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
       break;
      }
 
     default:
      {
-      ds.Name = Enc.Enc256.Decrypt(ds.Skey, Enc.Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+      ds.Name = Enc256.Decrypt(ds.Skey, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
       break;
      }
    }
@@ -179,61 +178,41 @@ namespace Medical_Profile
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
   }
 
-  public async Task<int> Write_exception(string Ex, bool show = false)
-  {
-   string Wrtim = DateTime.Now.ToString("yyyyMMddHHmmss");
-   var claims = Gen_Claims();
-   Dsave_return Dr;
-   aws_body.Clear();
-   aws_body["ukey"] = Enc.Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
-   aws_body["wrtim"] = Wrtim;
-   aws_body["exception"] = Ex;
-   Application.UseWaitCursor = true;
-   Dr = await Aws.Save_exception(Mpck.Url, enck, Mpck.Salt, claims, aws_body);
-   Application.UseWaitCursor = false;
-   if (show)
-   {
-    FlexibleMessageBox.Show(Ex, "Unhandled Exception");
-   }
+  //public string Fe(Exception e, string header = "Unhandled Exception")
+  //{
+  // var erm = new StringBuilder();
+  // erm.Append(header);
+  // erm.Append("\n");
+  // erm.Append("Installed Version ");
+  // erm.Append(installed_version);
+  // erm.Append("\n");
+  // if (e is AggregateException)
+  // {
+  //  AggregateException ae = e as AggregateException;
+  //  erm.Append("One or more errors have occured in a background process." + "\n");
+  //  foreach (var e1 in ae.Flatten().InnerExceptions)
+  //  {
+  //   erm.Append("\n");
+  //   erm.Append(e1.Message);
+  //   if (e1.StackTrace is object)
+  //   {
+  //    erm.Append("\n" + "Stack Trace:" + "\n");
+  //    erm.Append(e1.StackTrace);
+  //   }
+  //  }
+  // }
+  // else
+  // {
+  //  erm.Append(e.Message);
+  //  if (e.StackTrace is object)
+  //  {
+  //   erm.Append("\n" + "Stack Trace:" + "\n");
+  //   erm.Append(e.StackTrace);
+  //  }
+  // }
 
-   return Dr.code;
-  }
-
-  public string Fe(Exception e, string header = "Unhandled Exception")
-  {
-   var erm = new StringBuilder();
-   erm.Append(header);
-   erm.Append(Constants.vbLf);
-   erm.Append("Installed Version ");
-   erm.Append(installed_version);
-   erm.Append(Constants.vbLf);
-   if (e is AggregateException)
-   {
-    AggregateException ae = e as AggregateException;
-    erm.Append("One or more errors have occured in a background process." + Constants.vbLf);
-    foreach (var e1 in ae.Flatten().InnerExceptions)
-    {
-     erm.Append(Constants.vbLf);
-     erm.Append(e1.Message);
-     if (e1.StackTrace is object)
-     {
-      erm.Append(Constants.vbLf + "Stack Trace:" + Constants.vbLf);
-      erm.Append(e1.StackTrace);
-     }
-    }
-   }
-   else
-   {
-    erm.Append(e.Message);
-    if (e.StackTrace is object)
-    {
-     erm.Append(Constants.vbLf + "Stack Trace:" + Constants.vbLf);
-     erm.Append(e.StackTrace);
-    }
-   }
-
-   return erm.ToString();
-  }
+  // return erm.ToString();
+  //}
 
   public void Set_saved_items(List<Dsave> ds, bool preserve = false)
   {
@@ -261,7 +240,7 @@ namespace Medical_Profile
      {
       case 1:
        {
-        dec_name = Enc.Enc256.Decrypt(d.Skey, Enc.Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
+        dec_name = Enc256.Decrypt(d.Skey, Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
         if (string.IsNullOrEmpty(dec_name))
         {
          d.Name = "Unknown_" + (string.IsNullOrEmpty(d.lwtim) ? d.wrtim : d.lwtim);
@@ -277,7 +256,7 @@ namespace Medical_Profile
 
       default:
        {
-        dec_name = Enc.Enc256.Decrypt(d.Skey, Enc.Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+        dec_name = Enc256.Decrypt(d.Skey, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
         if (string.IsNullOrEmpty(dec_name))
         {
          d.Name = "Unknown_" + (string.IsNullOrEmpty(d.lwtim) ? d.wrtim : d.lwtim);
@@ -314,7 +293,7 @@ namespace Medical_Profile
       sb.Append(" lwtim[" + d.lwtim + "]");
      }
 
-     Console.WriteLine(sb.ToString());
+     //   Console.WriteLine(sb.ToString());
      saved_patients[dss] = d;
     }
 
@@ -353,7 +332,7 @@ namespace Medical_Profile
    atdp.Clear();
    for (int i = 0, loopTo = l1.Dpt.Length - 1; i <= loopTo; i++)
    {
-    departments[Conversions.ToInteger(l1.Dpt[i].departmentid)] = l1.Dpt[i];
+    departments[Convert.ToInt32(l1.Dpt[i].departmentid)] = l1.Dpt[i];
    }
 
    if (departments.Count == 1)
@@ -476,26 +455,26 @@ namespace Medical_Profile
 
    aws_body.Clear();
    js = JsonConvert.SerializeObject(Sblk, Formatting.Indented);
-   aws_body["skey"] = Enc.Enc256.Encrypt(Sblk.Patient, Enc.Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+   aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
    var switchExpr = save_ver;
    switch (switchExpr)
    {
     case 1:
      {
-      jse = Enc.Enc256.Encrypt(js, Enc.Enc256.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
-      aws_body["skey"] = Enc.Enc256.Encrypt(Sblk.Patient, Enc.Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
+      jse = Enc256.Encrypt(js, Enc256.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
+      aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
       break;
      }
 
     default:
      {
-      jse = Enc.Enc256.Encrypt(js, Enc.Enc256.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
-      aws_body["skey"] = Enc.Enc256.Encrypt(Sblk.Patient, Enc.Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+      jse = Enc256.Encrypt(js, Enc256.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
+      aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
       break;
      }
    }
 
-   aws_body["ukey"] = Enc.Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
+   aws_body["ukey"] = Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
    if (saved_type)
    {
     if (string.IsNullOrEmpty(Ds.lwtim))
@@ -607,7 +586,7 @@ namespace Medical_Profile
    Savemi.Enabled = false;
    Deletemi.Enabled = false;
    dsaves.Enabled = false;
-   Scsiz(Width, originaly);
+   Scsiz(Width, Originaly);
    Invalidate();
    Update();
    Reset_fields();
@@ -661,7 +640,7 @@ namespace Medical_Profile
    if (l2.Pat.Address1 is object)
    {
     ad.Append(l2.Pat.Address1);
-    term = Constants.vbCrLf;
+    term = "\r\n";
    }
 
    if (l2.Pat.City is object)
@@ -741,30 +720,39 @@ namespace Medical_Profile
     lab1["secph_title:"] = sp.Text;
    }
 
-   foreach (string b in Endpoints_in_use)
+   foreach(KeyValuePair<string,List<string>> K  in l2.blks)
    {
-    if (l2.blks.ContainsKey(b) && l2.blks[b].Count > 0)
+    var blk = new Blk_entry()
     {
+     header = K.Key,
+     State = (int)Load_state.not_loaded
+    };
+
+    if (Endpoints_in_use.Contains(blk.header))
+    {
+     blk.State = (int)Load_state.not_loaded_byc;
      int bnum = bl_available.First().Key;
      bl_used[bl_available.First().Key] = bl_available.First().Value;
      bl_available.Remove(bl_available.First().Key);
-     Controls[gpn[bnum]].Visible = false;
-     Controls[gpn[bnum]].Controls[0].Text = b;
-     Controls[gpn[bnum]].Controls[0].Tag = b;
-     Controls[gpn[bnum]].Controls[0].Enabled = true;
-     TextBox tb = (TextBox)Controls[gpn[bnum]].Controls[0];
+     Grpblocks[bnum].Visible = false;
+     Grpblocks[bnum].Controls[0].Text = K.Key;
+     Grpblocks[bnum].Controls[0].Tag = K.Key;
+     Grpblocks[bnum].Controls[0].Enabled = true;
+     TextBox tb = (TextBox)Grpblocks[bnum].Controls[0];
      tb.ReadOnly = true;
-     Controls[gpn[bnum]].Controls[1].Text = string.Join(Constants.vbCrLf, l2.blks[b]);
-     Controls[gpn[bnum]].Controls[1].Enabled = true;
-     RichTextBox rb = (RichTextBox)Controls[gpn[bnum]].Controls[1];
+     Grpblocks[bnum].Controls[1].Text = string.Join("\r\n", K.Value);
+     Grpblocks[bnum].Controls[1].Enabled = true;
+     Grpblocks[bnum].Controls[1].Tag = K.Key;
+     RichTextBox rb = (RichTextBox)Grpblocks[bnum].Controls[1];
      rb.ReadOnly = true;
      rb.BackColor = System.Drawing.Color.White;
      Ath_setcolor(bnum);
-     labgb[gph[bnum]] = b;
-     labgb[gpb[bnum]] = string.Join(Constants.vbCrLf, l2.blks[b]);
-     bl_loaded[b].Num = bnum;
-     bl_loaded[b].State = (int)Load_state.loaded;
+     labgb[gph[bnum]] = K.Key;
+     labgb[gpb[bnum]] = string.Join("\r\n", K.Value);
+     blk.State = (int)Load_state.loaded;
+     blk.Num = bnum;
     }
+    bl_loaded[K.Key] = blk;
    }
 
    if (bl_used.Count > 0)
@@ -773,20 +761,19 @@ namespace Medical_Profile
    }
 
    Update();
-   foreach (KeyValuePair<int, string> k in bl_used)
+
+   foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
    {
-    Controls[k.Value].Visible = true;
+    if (k.Value.State == (int)Load_state.loaded)
+     Grpblocks[k.Value.Num].Visible = true;
    }
 
-   // If pr_practice Then
    Savemi.Visible = true;
    Savemi.Enabled = true;
    dsaves.Enabled = true;
-   // End If
 
    Set_empgb();
    Data_altered = false;
-   // WireAllEvents(dsaves)
    return;
   }
 
@@ -840,22 +827,22 @@ namespace Medical_Profile
     bnum = sb.num;
     if (gpn.ContainsKey(bnum))
     {
-     Controls[gpn[bnum]].Visible = false;
-     Controls[gpn[bnum]].Controls[0].Text = sb.header;
-     Controls[gpn[bnum]].Controls[0].Tag = sb.header;
-     Controls[gpn[bnum]].Controls[0].Enabled = true;
-     TextBox tb = (TextBox)Controls[gpn[bnum]].Controls[0];
+     Grpblocks[bnum].Visible = false;
+     Grpblocks[bnum].Controls[0].Text = sb.header;
+     Grpblocks[bnum].Controls[0].Tag = sb.header;
+     Grpblocks[bnum].Controls[0].Enabled = true;
+     TextBox tb = (TextBox)Grpblocks[bnum].Controls[0];
      tb.ReadOnly = true;
-     Controls[gpn[bnum]].Controls[1].Text = sb.body;
-     Controls[gpn[bnum]].Controls[1].Enabled = true;
-     RichTextBox rb = (RichTextBox)Controls[gpn[bnum]].Controls[1];
+     Grpblocks[bnum].Controls[1].Text = sb.body;
+     Grpblocks[bnum].Controls[1].Enabled = true;
+     RichTextBox rb = (RichTextBox)Grpblocks[bnum].Controls[1];
      rb.ReadOnly = true;
      rb.BackColor = System.Drawing.Color.White;
      Ath_setcolor(bnum);
      labgb[gph[bnum]] = sb.header;
      labgb[gpb[bnum]] = sb.body;
      bl_used[bnum] = bl_available[bnum];
-     bl_available.Remove(bnum);
+     bl_available.Remove(bnum);     
     }
    }
 
@@ -869,7 +856,7 @@ namespace Medical_Profile
    Update();
    foreach (KeyValuePair<int, string> k in bl_used)
    {
-    Controls[k.Value].Visible = true;
+    Grpblocks[k.Key].Visible = true;
    }
 
    Set_empgb();
@@ -954,11 +941,13 @@ namespace Medical_Profile
    try
    {
     lab1.Clear();
-    foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
-    {
-     k.Value.State = (int)Load_state.not_in_use;
-     k.Value.Num = 0;
-    }
+    //foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
+    //{
+    // k.Value.State = (int)Load_state.not_in_use;
+    // k.Value.Num = 0;
+    //}
+
+    bl_loaded.Clear();
 
     foreach (KeyValuePair<int, string> k in bl_used)
     {
@@ -966,31 +955,36 @@ namespace Medical_Profile
     }
 
     bl_used.Clear();
+
     foreach (KeyValuePair<int, string> s in bl_available)
     {
-     Controls[s.Value].Visible = false;
-     Controls[s.Value].Controls[0].Text = string.Empty;
-     Controls[s.Value].Controls[1].Text = string.Empty;
+     Grpblocks[s.Key].Visible = false;
+     Grpblocks[s.Key].Controls[0].Text = string.Empty;
+     Grpblocks[s.Key].Controls[1].Text = string.Empty;
     }
 
-    currenty = originaly;
+    currenty = Originaly;
+
     this.SuspendPaint();
     for (int i = 1, loopTo = Endpoints_in_use.Count; i <= loopTo; i++)
     {
      gb_name = bl_available[i];
      labgb[gph[i]] = string.Empty;
      labgb[gpb[i]] = string.Empty;
-     currenty = Setcy((GroupBox)Controls[gb_name]);
+     currenty = Setcy(Grpblocks[i]);
     }
+    Panels_delete();
 
     Reset_labels();
-    Scsiz(Width, originaly);
+
+    Scsiz(Width, Originaly);
+
     this.ResumePaint();
    }
    catch (Exception ex)
    {
-    string s = Format_exception(ex);
-    Interaction.MsgBox("Exception", MsgBoxStyle.OkOnly, s);
+    string s = Program.Format_exception(ex);
+    MessageBox.Show("Exception", s, MessageBoxButtons.OK);
     Application.Exit();
    }
 
@@ -1000,9 +994,9 @@ namespace Medical_Profile
   public string Trimc(ref string s1, string crm)
   {
    string sl = s1;
-   foreach (char c in crm)
+   for (int i = 0; i < crm.Length; i++)
    {
-    sl = sl.Replace(Conversions.ToString(c), "");
+    sl = sl.Replace(crm.Substring(i, 1), "");
    }
 
    return sl;
@@ -1075,38 +1069,38 @@ namespace Medical_Profile
    return et;
   }
 
-  public static string Format_exception(Exception e, string header = "Error obtaining data")
-  {
-   var erm = new StringBuilder();
-   erm.Append(header);
-   erm.Append(Constants.vbLf);
-   if (e is AggregateException)
-   {
-    AggregateException ae = e as AggregateException;
-    erm.Append("One or more errors have occured in a background process." + Constants.vbLf);
-    foreach (var e1 in ae.Flatten().InnerExceptions)
-    {
-     erm.Append(Constants.vbLf);
-     erm.Append(e1.Message);
-     if (e1.StackTrace is object)
-     {
-      erm.Append(Constants.vbLf + "Stack Trace:" + Constants.vbLf);
-      erm.Append(e1.StackTrace);
-     }
-    }
-   }
-   else
-   {
-    erm.Append(e.Message);
-    if (e.StackTrace is object)
-    {
-     erm.Append(Constants.vbLf + "Stack Trace:" + Constants.vbLf);
-     erm.Append(e.StackTrace);
-    }
-   }
+  //public static string Format_exception(Exception e, string header = "Error obtaining data")
+  //{
+  // var erm = new StringBuilder();
+  // erm.Append(header);
+  // erm.Append("\n");
+  // if (e is AggregateException)
+  // {
+  //  AggregateException ae = e as AggregateException;
+  //  erm.Append("One or more errors have occured in a background process." + "\n");
+  //  foreach (var e1 in ae.Flatten().InnerExceptions)
+  //  {
+  //   erm.Append("\n");
+  //   erm.Append(e1.Message);
+  //   if (e1.StackTrace is object)
+  //   {
+  //    erm.Append("\n" + "Stack Trace:" + "\n");
+  //    erm.Append(e1.StackTrace);
+  //   }
+  //  }
+  // }
+  // else
+  // {
+  //  erm.Append(e.Message);
+  //  if (e.StackTrace is object)
+  //  {
+  //   erm.Append("\n" + "Stack Trace:" + "\n");
+  //   erm.Append(e.StackTrace);
+  //  }
+  // }
 
-   return erm.ToString();
-  }
+  // return erm.ToString();
+  //}
 
   private float Wlengb(string s, double pts = default)
   {
@@ -1123,7 +1117,7 @@ namespace Medical_Profile
 
    for (int i = 0, loopTo = s.Length - 1; i <= loopTo; i++)
    {
-    wl +=Convert.ToSingle(cwdb[s[i]] * pt1);
+    wl += Convert.ToSingle(cwdb[s[i]] * pt1);
    }
 
    wl += Convert.ToSingle(cwdb[32] * pt1);
@@ -1165,10 +1159,10 @@ namespace Medical_Profile
    float wds;
    bool chng;
 
-   for(int il = 0;il <lsa.Length ;il++)
-   { 
-    lsa[il] = lsa[il].TrimEnd(Conversions.ToChar(Constants.vbCrLf), Conversions.ToChar(Constants.vbCr), Conversions.ToChar(Constants.vbLf));
-   lsa[il] = lsa[il].TrimStart(Conversions.ToChar(Constants.vbCrLf), Conversions.ToChar(Constants.vbCr), Conversions.ToChar(Constants.vbLf));
+   for (int il = 0; il < lsa.Length; il++)
+   {
+    lsa[il] = lsa[il].TrimEnd('\r', '\n');
+    lsa[il] = lsa[il].TrimStart('\r', '\n');
    }
 
    lst = lsa.ToList();
@@ -1178,7 +1172,7 @@ namespace Medical_Profile
    {
     chng = false;
     lst[i] = lst[i].TrimStart();
-    lst[i] = lst[i].TrimEnd(Conversions.ToChar(Constants.vbVerticalTab));
+    lst[i] = lst[i].TrimEnd('\v');
     lst[i] = lst[i].TrimEnd();
     if (lst[i].StartsWith("Last Reviewed"))
     {
@@ -1254,7 +1248,7 @@ namespace Medical_Profile
     i = i + 1;
    }
 
-   return string.Join(Constants.vbCrLf, lst);
+   return string.Join("\r\n", lst);
   }
 
   private int Setcolor(int bn, int nl)
@@ -1275,8 +1269,6 @@ namespace Medical_Profile
    bx.Select(0, 0);
    return ln;
   }
-
-  /* TODO ERROR: Skipped RegionDirectiveTrivia */
   public static Bitmap ResizeImage(Bitmap bmSource, int TargetWidth, int TargetHeight)
   {
    var bmDest = new Bitmap(TargetWidth, TargetHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -1316,7 +1308,6 @@ namespace Medical_Profile
    return bmDest;
   }
 
-  /* TODO ERROR: Skipped EndRegionDirectiveTrivia */
   public string Ucfc(string value)
   {
    if (string.IsNullOrEmpty(value))
@@ -1324,7 +1315,7 @@ namespace Medical_Profile
     return string.Empty;
    }
 
-   return Conversions.ToString(char.ToUpper(value[0])) + value.Substring(1).ToLower();
+   return Convert.ToString(char.ToUpper(value[0])) + value.Substring(1).ToLower();
   }
 
   public byte[] Render(ILabel label)

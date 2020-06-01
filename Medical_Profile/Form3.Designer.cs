@@ -3,11 +3,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace Medical_Profile
 {
- [DesignerGenerated()]
  public partial class Form3 : Form
  {
 
@@ -29,7 +27,7 @@ namespace Medical_Profile
   }
 
   // Required by the Windows Form Designer
-  private System.ComponentModel.IContainer components;
+  private System.ComponentModel.IContainer components = null;
 
   // NOTE: The following procedure is required by the Windows Form Designer
   // It can be modified using the Windows Form Designer.  
@@ -37,75 +35,83 @@ namespace Medical_Profile
   [DebuggerStepThrough()]
   private void InitializeComponent()
   {
-   _MenuStrip1 = new MenuStrip();
-   _ClosePreviewToolStripMenuItem = new ToolStripMenuItem();
-   _ClosePreviewToolStripMenuItem.Click += new EventHandler(ClosePreviewToolStripMenuItem_Click);
-   _PrintFormToolStripMenuItem = new ToolStripMenuItem();
-   _PrintFormToolStripMenuItem.Click += new EventHandler(PrintFormToolStripMenuItem_Click);
-   _PrintDoc = new System.Drawing.Printing.PrintDocument();
-   _PrintDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(PrintDoc_PrintPage);
-   _PrintDocument1 = new System.Drawing.Printing.PrintDocument();
-   _PrintDocument1.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(pd_PrintPage);
-   _PrintLabelsToolStripMenuItem = new ToolStripMenuItem();
-   _PrintLabelsToolStripMenuItem.Click += new EventHandler(PrintLabelsToolStripMenuItem_Click);
-   _PD2 = new System.Drawing.Printing.PrintDocument();
-   _PD2.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(PD2_PrintPage);
-   _MenuStrip1.SuspendLayout();
-   SuspendLayout();
+   this._MenuStrip1 = new System.Windows.Forms.MenuStrip();
+   this._ClosePreviewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+   this._PrintFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+   this._PrintLabelsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+   this._PrintDoc = new System.Drawing.Printing.PrintDocument();
+   this._PrintDocument1 = new System.Drawing.Printing.PrintDocument();
+   this._PD2 = new System.Drawing.Printing.PrintDocument();
+   this._MenuStrip1.SuspendLayout();
+   this.SuspendLayout();
    // 
-   // MenuStrip1
+   // _MenuStrip1
    // 
-   _MenuStrip1.Items.AddRange(new ToolStripItem[] { _ClosePreviewToolStripMenuItem, _PrintFormToolStripMenuItem, _PrintLabelsToolStripMenuItem });
-   _MenuStrip1.Location = new Point(0, 0);
-   _MenuStrip1.Name = "MenuStrip1";
-   _MenuStrip1.Size = new Size(1033, 24);
-   _MenuStrip1.TabIndex = 1;
-   _MenuStrip1.Text = "MenuStrip1";
+   this._MenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this._ClosePreviewToolStripMenuItem,
+            this._PrintFormToolStripMenuItem,
+            this._PrintLabelsToolStripMenuItem});
+   this._MenuStrip1.Location = new System.Drawing.Point(0, 0);
+   this._MenuStrip1.Name = "_MenuStrip1";
+   this._MenuStrip1.Size = new System.Drawing.Size(1033, 24);
+   this._MenuStrip1.TabIndex = 1;
+   this._MenuStrip1.Text = "MenuStrip1";
    // 
-   // ClosePreviewToolStripMenuItem
+   // _ClosePreviewToolStripMenuItem
    // 
-   _ClosePreviewToolStripMenuItem.Font = new Font("Segoe UI", 9.0F, FontStyle.Bold, GraphicsUnit.Point, Conversions.ToByte(0));
-   _ClosePreviewToolStripMenuItem.Name = "ClosePreviewToolStripMenuItem";
-   _ClosePreviewToolStripMenuItem.Size = new Size(97, 20);
-   _ClosePreviewToolStripMenuItem.Text = "Close Preview";
+   this._ClosePreviewToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+   this._ClosePreviewToolStripMenuItem.Name = "_ClosePreviewToolStripMenuItem";
+   this._ClosePreviewToolStripMenuItem.Size = new System.Drawing.Size(97, 20);
+   this._ClosePreviewToolStripMenuItem.Text = "Close Preview";
+   this._ClosePreviewToolStripMenuItem.Click += new System.EventHandler(this.ClosePreviewToolStripMenuItem_Click);
    // 
-   // PrintFormToolStripMenuItem
+   // _PrintFormToolStripMenuItem
    // 
-   _PrintFormToolStripMenuItem.Font = new Font("Segoe UI", 9.0F, FontStyle.Bold, GraphicsUnit.Point, Conversions.ToByte(0));
-   _PrintFormToolStripMenuItem.Name = "PrintFormToolStripMenuItem";
-   _PrintFormToolStripMenuItem.Size = new Size(78, 20);
-   _PrintFormToolStripMenuItem.Text = "Print Form";
+   this._PrintFormToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+   this._PrintFormToolStripMenuItem.Name = "_PrintFormToolStripMenuItem";
+   this._PrintFormToolStripMenuItem.Size = new System.Drawing.Size(78, 20);
+   this._PrintFormToolStripMenuItem.Text = "Print Form";
+   this._PrintFormToolStripMenuItem.Click += new System.EventHandler(this.PrintFormToolStripMenuItem_Click);
    // 
-   // PrintDoc
+   // _PrintLabelsToolStripMenuItem
    // 
+   this._PrintLabelsToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+   this._PrintLabelsToolStripMenuItem.Name = "_PrintLabelsToolStripMenuItem";
+   this._PrintLabelsToolStripMenuItem.Size = new System.Drawing.Size(83, 20);
+   this._PrintLabelsToolStripMenuItem.Text = "Print Labels";
+   this._PrintLabelsToolStripMenuItem.Click += new System.EventHandler(this.PrintLabelsToolStripMenuItem_Click);
    // 
-   // PrintDocument1
+   // _PrintDoc
    // 
+   this._PrintDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.PrintDoc_PrintPage);
    // 
-   // PrintLabelsToolStripMenuItem
+   // _PrintDocument1
    // 
-   _PrintLabelsToolStripMenuItem.Font = new Font("Segoe UI", 9.0F, FontStyle.Bold, GraphicsUnit.Point, Conversions.ToByte(0));
-   _PrintLabelsToolStripMenuItem.Name = "PrintLabelsToolStripMenuItem";
-   _PrintLabelsToolStripMenuItem.Size = new Size(83, 20);
-   _PrintLabelsToolStripMenuItem.Text = "Print Labels";
+   this._PrintDocument1.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.pd_PrintPage);
+   // 
+   // _PD2
+   // 
+   this._PD2.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.PD2_PrintPage);
    // 
    // Form3
    // 
-   AutoScaleDimensions = new SizeF(6.0F, 13.0F);
-   AutoScaleMode = AutoScaleMode.Font;
-   AutoScroll = true;
-   AutoSize = true;
-   AutoSizeMode = AutoSizeMode.GrowAndShrink;
-   ClientSize = new Size(1033, 623);
-   Controls.Add(_MenuStrip1);
-   MainMenuStrip = _MenuStrip1;
-   Name = "Form3";
-   ShowIcon = false;
-   Text = "Form3";
-   _MenuStrip1.ResumeLayout(false);
-   _MenuStrip1.PerformLayout();
-   ResumeLayout(false);
-   PerformLayout();
+   this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+   this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+   this.AutoScroll = true;
+   this.AutoSize = true;
+   this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+   this.ClientSize = new System.Drawing.Size(1033, 623);
+   this.Controls.Add(this._MenuStrip1);
+   this.MainMenuStrip = this._MenuStrip1;
+   this.Name = "Form3";
+   this.ShowIcon = false;
+   this.Text = "Form3";
+   this.Load += new System.EventHandler(this.Form3_Load);
+   this._MenuStrip1.ResumeLayout(false);
+   this._MenuStrip1.PerformLayout();
+   this.ResumeLayout(false);
+   this.PerformLayout();
+
   }
 
   private MenuStrip _MenuStrip1;

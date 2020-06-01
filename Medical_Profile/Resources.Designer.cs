@@ -9,7 +9,6 @@
 // ------------------------------------------------------------------------------
 
 using System.Diagnostics;
-using Microsoft.VisualBasic;
 
 namespace Medical_Profile.My.Resources
 {
@@ -24,7 +23,7 @@ namespace Medical_Profile.My.Resources
  [System.CodeDom.Compiler.GeneratedCode("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
  [DebuggerNonUserCode()]
  [System.Runtime.CompilerServices.CompilerGenerated()]
- [HideModuleName()]
+// [HideModuleName()]
  internal static class Resources
  {
   private static System.Resources.ResourceManager resourceMan;

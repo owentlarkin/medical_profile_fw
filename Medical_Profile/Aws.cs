@@ -1,9 +1,10 @@
-﻿using global::System.Collections.Generic;
-using global::System.IO;
-using global::System.Threading.Tasks;
-using global::Flurl.Http;
-using global::Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Flurl.Http;
+using Newtonsoft.Json;
 using System.Windows.Forms;
+using Enc;
 
 namespace Medical_Profile
 {
@@ -25,7 +26,7 @@ namespace Medical_Profile
    Mret m1;
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 5000;
-   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   string Token = Enc256.Encode(Key, Salt, Claims);
    using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
     // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
@@ -50,7 +51,7 @@ namespace Medical_Profile
    Mret M1 = null;
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 6725;
-   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   string Token = Enc256.Encode(Key, Salt, Claims);
    using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
     try
@@ -83,7 +84,7 @@ namespace Medical_Profile
    Mret M1 = null;
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5184;
-   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   string Token = Enc256.Encode(Key, Salt, Claims);
    using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
     try
@@ -104,7 +105,7 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
-     int i = 1;
+ //    int i = 1;
     }
    }
 
@@ -117,7 +118,7 @@ namespace Medical_Profile
    Mret M1 = null;
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5163;
-   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   string Token = Enc256.Encode(Key, Salt, Claims);
    using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
     try
@@ -138,7 +139,7 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
-     int i = 1;
+  //   int i = 1;
     }
    }
 
@@ -161,7 +162,7 @@ namespace Medical_Profile
    }
 
    Bpl["Call_vector"] = 7943;
-   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   string Token = Enc256.Encode(Key, Salt, Claims);
    using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
     try
@@ -182,7 +183,7 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
-     int i = 1;
+  //   int i = 1;
     }
    }
 
@@ -194,7 +195,7 @@ namespace Medical_Profile
    var l2 = new Level2_Return();
    if (File.Exists("l2ret.json"))
    {
-    Mret m2 = null;
+  //  Mret m2 = null;
     using (var sr = new StreamReader("l2ret.json"))
     {
      string l2d = sr.ReadToEnd();
@@ -208,7 +209,7 @@ namespace Medical_Profile
    Mret m1 = null;
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 6000;
-   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   string Token = Enc256.Encode(Key, Salt, Claims);
    using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
     try
@@ -229,7 +230,7 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
-     int i = 1;
+  //   int i = 1;
     }
    }
 
@@ -242,7 +243,7 @@ namespace Medical_Profile
    Mret m1 = null;
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 4152;
-   string Token = Enc.Enc256.Encode(Key, Salt, Claims);
+   string Token = Enc256.Encode(Key, Salt, Claims);
    using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
     // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()

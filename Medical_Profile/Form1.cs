@@ -14,11 +14,10 @@ using global::Amazon.DynamoDBv2;
 using global::Amazon.DynamoDBv2.DocumentModel;
 using global::DYMO.Label.Framework;
 using global::JWT;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using global::Microsoft.Win32;
 using global::Newtonsoft.Json;
 using System.Text;
+using Enc;
 
 namespace Medical_Profile
 {
@@ -26,34 +25,26 @@ namespace Medical_Profile
  {
   private System.Collections.Specialized.StringCollection Endpoints_in_use = new System.Collections.Specialized.StringCollection();
   private string drive_label = null;
-  private string usb_file = null;
-  private static string cid = null;
+  public string cid = null;
   private string ftime = null;
-  private object pngdata;
   private object iLock = new object();
-  private string line;
-  private string Folder = "";
-  private bool icalled = false;
-  private bool dnh = true;
   private char[] cv = new char[17];
-  private int Wanted_hgt = 0;
-  private object o1 = null;
-  private int margin1 = 6;
-  private int margin2 = 18;
+  private int Ymargin = 6;
+  private int Xmargin = 18;
   private int margin3 = 10;
   private int label_header = 345;
   private float ll = (float)(3600 / 15.0);
   private int nlead = 191;
   private int ylimit = 2386;
-
+  int Xsize = 365;
+  int Ysize = 192;
+  int Blockno = 1;
   private delegate void cb();
 
   private delegate void InvokeDelegate();
 
   private bool Preview = false;
-  private bool Develop = false;
-  private static MPC_key Mpck = null;
-  private System.Timers.Timer _timer;
+  public MPC_key Mpck = null;
 
   private enum Load_state
   {
@@ -76,24 +67,28 @@ namespace Medical_Profile
 
   public Form1()
   {
-   // string fnam = null;
-   //  string fs = null;
    try
    {
     SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
     InitializeComponent();
+    Size = new Size(1188, Height);
     dept_tbox.Visible = false;
     Visible = false;
+
     var myScreen = Screen.FromControl(this);
+
     var area = myScreen.WorkingArea;
+
     Screen_width = area.Size.Width;
     Screen_height = area.Size.Height;
-    cv[5] = (char)(Strings.Asc(title[19]) + 16);
-    cv[6] = (char)Strings.Asc(title[9]);
-    cv[7] = (char)Strings.Asc(title[33]);
-    cv[8] = (char)(Strings.Asc(title[13]) - 8);
-    cv[10] = (char)Strings.Asc(title[1]);
-    cv[11] = (char)Strings.Asc(title[36]);
+
+    cv[5] = Convert.ToChar(title[19] + 16);
+    cv[6] = Convert.ToChar(title[9]);
+    cv[7] = Convert.ToChar(title[33]);
+    cv[8] = Convert.ToChar(title[13] - 8);
+    cv[10] = Convert.ToChar(title[1]);
+    cv[11] = Convert.ToChar(title[36]);
+
     if (Properties.Settings.Default.first_run_flag)
     {
      first_run = true;
@@ -105,12 +100,13 @@ namespace Medical_Profile
      first_run = false;
     }
 
-    cv[12] = (char)Strings.Asc(title[31]);
-    cv[13] = (char)(Strings.Asc(title[9]) + 10);
-    cv[15] = (char)(Strings.Asc(title[33]) + 5);
-    cv[3] = (char)(Strings.Asc(title[3]) + 6);
-    cv[1] = (char)Strings.Asc(title[10]);
-    cv[2] = (char)Strings.Asc(title[18]);
+    cv[12] = Convert.ToChar(title[31]);
+    cv[13] = Convert.ToChar(title[9] + 10);
+    cv[15] = Convert.ToChar(title[33] + 5);
+    cv[3] = Convert.ToChar(title[3] + 6);
+    cv[1] = Convert.ToChar(title[10]);
+    cv[2] = Convert.ToChar(title[18]);
+
     if (first_run)
     {
      var pi1 = new ProcessStartInfo()
@@ -138,15 +134,16 @@ namespace Medical_Profile
     MessageBox.Show(ex.Message);
    }
 
-   cv[9] = (char)(Strings.Asc(title[0]) + 32);
-   cv[16] = (char)(Strings.Asc(title[26]) - 48);
-   cv[0] = (char)(Strings.Asc(title[2]) - 32);
-   cv[4] = (char)(Strings.Asc(title[5]) - 64);
-   cv[14] = (char)(Strings.Asc(title[23]) + 16);
+   cv[9] = Convert.ToChar(title[0] + 32);
+   cv[16] = Convert.ToChar(title[26] - 48);
+   cv[0] = Convert.ToChar(title[2] - 32);
+   cv[4] = Convert.ToChar(title[5] - 64);
+   cv[14] = Convert.ToChar(title[23] + 16);
+
    var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
    if (key is object)
    {
-    cid = Conversions.ToString(key.GetValue("Cid", null));
+    cid = key.GetValue("Cid", null).ToString();
     if (cid == default)
     {
      cid = Guid.NewGuid().ToString();
@@ -158,10 +155,10 @@ namespace Medical_Profile
   private string Handle_file(string eval)
   {
    MPC_type mty = null;
-   string rjson = Enc.Enc256.Decrypt(eval, enck, 17531);
+   string rjson = Enc256.Decrypt(eval, enck, 17531);
    if (rjson == default)
    {
-    return Conversions.ToString(1);
+    return "1";
    }
 
    mty = JsonConvert.DeserializeObject<MPC_type>(rjson);
@@ -172,7 +169,7 @@ namespace Medical_Profile
 
    if (mty.F1 != default)
    {
-    rjson = Enc.Enc256.Decrypt(mty.F1, enck, mty.Akey);
+    rjson = Enc256.Decrypt(mty.F1, enck, mty.Akey);
     if (rjson is null)
     {
      MessageBox.Show("Key file is incorrect.", "Error", MessageBoxButtons.OK);
@@ -182,7 +179,7 @@ namespace Medical_Profile
     Mpck = JsonConvert.DeserializeObject<MPC_key>(rjson);
    }
 
-   return Conversions.ToString(0);
+   return "0";
   }
 
   private string Set_key(string s1, string s2)
@@ -197,7 +194,6 @@ namespace Medical_Profile
 
   private int Handle_testmode(string un)
   {
-   //   int n = default;
    MPC_User mpu;
    string ds;
    Document item;
@@ -227,7 +223,7 @@ namespace Medical_Profile
     withBlock.Lines = mpu.Lines;
     withBlock.Minimum_blocks = mpu.Minimum_blocks;
     withBlock.Points = mpu.Points;
-    withBlock.Sec_visible = Conversions.ToBoolean(mpu.Sec_visible);
+    withBlock.Sec_visible = Convert.ToBoolean(mpu.Sec_visible);
     withBlock.Sptitle = mpu.Sptitle;
     withBlock.Version = mpu.Version;
    }
@@ -240,7 +236,6 @@ namespace Medical_Profile
 
   private int Handle_usb(string dle)
   {
-   //  int n = default;
    string fs;
    string it;
    string d1 = null;
@@ -249,7 +244,7 @@ namespace Medical_Profile
    {
     if (d.VolumeLabel.StartsWith("MPC"))
     {
-     d1 = Enc.Enc256.Decrypt(dle, enck, d.VolumeLabel);
+     d1 = Enc256.Decrypt(dle, enck, d.VolumeLabel);
      if (d1 is object && (d1 ?? "") == (d.VolumeLabel ?? ""))
      {
       it = d.VolumeLabel.Substring(3);
@@ -269,7 +264,7 @@ namespace Medical_Profile
       using (var sr = new StreamReader(USB_Fname))
       {
        fs = sr.ReadToEnd();
-       string rjson = Enc.Enc256.Decrypt(fs, enck, drive_label);
+       string rjson = Enc256.Decrypt(fs, enck, drive_label);
        if (rjson is null)
        {
         MessageBox.Show("Key file is incorrect.", "Error", MessageBoxButtons.OK);
@@ -327,7 +322,7 @@ namespace Medical_Profile
    bl = Wlengb("", 9);
    bn = (int)((192.375 - (rlen + nlen - bl)) / bl);
    htb.Append(Patient.Text + "     ", lfnt, Colors.Black);
-   htb.Append(Strings.StrDup(bn, " "), lfnt, Colors.Black);
+   htb.Append(new string(' ', bn), lfnt, Colors.Black);
    htb.Append(stb.StyledText.Text, lfnt, Colors.Black);
    tb.StyledText = htb.StyledText;
 
@@ -362,7 +357,6 @@ namespace Medical_Profile
 
   private bool Check_lines()
   {
-   //  int lc = 0;
    string[] li;
    string lis;
    var lin = new List<string>();
@@ -499,25 +493,7 @@ namespace Medical_Profile
    Tb.StyledText = val.StyledText;
    return y + h;
   }
-
-  private int Lab_field(string Name, string val, float x, int y, float w, int h)
-  {
-   TextObject Tb;
-   Label.AddObject(new TextObject(Name), new Rect(x, y / 15.0, w, h / 15.0));
-   Tb = (TextObject)Label.GetObjectByName(Name);
-   Tb.Text = val;
-   return y + h;
-  }
-
-  private int Lab_field(string Name, string val, int x, int y, float w, int h)
-  {
-   TextObject Tb;
-   Label.AddObject(new TextObject(Name), new Rect(x / 15.0, y / 15.0, w, h / 15.0));
-   Tb = (TextObject)Label.GetObjectByName(Name);
-   Tb.Text = val;
-   return y + h;
-  }
-
+ 
   private void Generate_Labels()
   {
    string P1 = @"(\(??\d\d\d\)??[\s|-]\d\d\d-\d\d\d\d)";
@@ -543,20 +519,11 @@ namespace Medical_Profile
     return;
    }
 
-   labelno = 0;
-   Pnglablist.Clear();
-   if (printer is ILabelWriterPrinter)
-   {
-    pjob = printer.CreatePrintJob(lprintparams);
-   }
-   else
-   {
-    pjob = printer.CreatePrintJob(printParams);
-   }
+   labelno = 0;   
 
    pname = Patient.Text;
    pdob = DOB.Text;
-   Label = (IDieCutLabel)Framework.Open("mpc1.label");
+   Label = (DieCutLabel)Framework.Open("mpc1.label");
    tb = (TextObject)Label.GetObjectByName("name");
    Label.DeleteObject(tb);
    tb = (TextObject)Label.GetObjectByName("labtext");
@@ -587,7 +554,7 @@ namespace Medical_Profile
      {
       if (i > 0)
       {
-       stb.Append(Constants.vbCrLf, reg_font, Colors.Black);
+       stb.Append("\n", reg_font, Colors.Black);
       }
 
       stb.Append(li[i], reg_font, Colors.Black);
@@ -660,7 +627,7 @@ namespace Medical_Profile
     if (!string.IsNullOrEmpty(Phone_number))
     {
      pl = 2 * pl;
-     stb.Append(Constants.vbCrLf, rp1_font, Colors.Black);
+     stb.Append("\n", rp1_font, Colors.Black);
      stb.Append("  " + Phone_number, rp1_font, Colors.Black);
     }
 
@@ -690,35 +657,19 @@ namespace Medical_Profile
     currenty = Lab_field("insurance", stb, 317, currenty + yadj, ll, 191);
     yadj = 0;
    }
+   Output_label(ref pjob, ref Label, labelno);
+   currenty = New_label(ref Label, ref labelno);
 
-   PrintJob argpjob = (PrintJob)pjob;
-   DieCutLabel arglabel = (DieCutLabel)Label;
-   Output_label(ref argpjob, ref arglabel, labelno);
-   DieCutLabel arglbl = (DieCutLabel)Label;
-   currenty = New_label(ref arglbl, ref labelno);
+   stb = new StyledTextBuilder();
 
-   // stb = New StyledTextBuilder
-
-   foreach (Control cb in Controls)
+   foreach (KeyValuePair<int, string> K in bl_used)
    {
-    if (!cb.Name.StartsWith("GB"))
-    {
-     continue;
-    }
+    int Bnum = K.Key;
+    GroupBox Gb = Grpblocks[Bnum];
 
-    // If String.IsNullOrEmpty(cb.Controls(0).Text) Or String.IsNullOrEmpty(cb.Controls(1).Text) Then
-    if (string.IsNullOrEmpty(cb.Controls[1].Text))
-    {
-     continue;
-    }
-
-    int bn = (from kvp in gpn
-              where (kvp.Value ?? "") == (cb.Name ?? "")
-              select kvp).First().Key;
     if (Label is null)
     {
-     DieCutLabel arglbl1 = (DieCutLabel)Label;
-     currenty = New_label(ref arglbl1, ref labelno);
+     currenty = New_label(ref Label, ref labelno);
     }
 
     if (labelno > labels_number)
@@ -726,107 +677,103 @@ namespace Medical_Profile
      break;
     }
 
-    if (string.IsNullOrEmpty(cb.Controls[0].Text))
+    if (!string.IsNullOrEmpty(Gb.Controls[0].Text))
     {
-     y_space_needed = nlead;
-    }
-    else
-    {
-     y_space_needed = nlead * 2;
-    }
+     y_space_needed = 0;
 
-    if (currenty > label_header & !string.IsNullOrEmpty(cb.Controls[0].Text))
-    {
-     y_space_needed += nlead / 2;
-    }
-
-    if (ylimit - currenty < y_space_needed)
-    {
-     PrintJob argpjob1 = (PrintJob)pjob;
-     DieCutLabel arglabel1 = (DieCutLabel)Label;
-     Output_label(ref argpjob1, ref arglabel1, labelno);
-     DieCutLabel arglbl2 = (DieCutLabel)Label;
-     currenty = New_label(ref arglbl2, ref labelno);
-     if (labelno > labels_number)
+     if (string.IsNullOrEmpty(Gb.Controls[0].Text))
      {
-      break;
-     }
-    }
-
-    if (currenty > label_header & !string.IsNullOrEmpty(cb.Controls[0].Text))
-    {
-     currenty += nlead / 2;
-    }
-
-    stb = new StyledTextBuilder();
-    if (!string.IsNullOrEmpty(cb.Controls[0].Text))
-    {
-     stb.Append(cb.Controls[0].Text, bld_font, Colors.Black);
-     currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
-    }
-    else
-    {
-     currenty += nlead;
-    }
-
-    lis = cb.Controls[1].Text;
-    elines.Clear();
-    if ((lines_setting ?? "") == "Label")
-    {
-     lis = this.Adjust_lines(lis, "File");
-    }
-
-    lis = Adjust_lines(lis, "Label", elines);
-    li = Regex.Split(lis, @"\r\n|\n");
-    int lic = li.Count();
-    if (max_rec[bn] > 0 & lic > max_rec[bn])
-    {
-     lic = max_rec[bn];
-     int iadj = 0;
-     foreach (KeyValuePair<int, int> kvp in elines)
-     {
-      if (kvp.Key <= lic)
-      {
-       iadj = iadj + kvp.Value;
-      }
+      y_space_needed += nlead;
      }
 
-     lic = lic + iadj;
-    }
-
-    for (int i = 0, loopTo1 = li.Count() - 1; i <= loopTo1; i += 1)
-    {
-     if (string.IsNullOrEmpty(li[i]))
+     if (string.IsNullOrEmpty(Gb.Controls[1].Text))
      {
-      currenty += nlead;
-     }
-     else
-     {
-      stb = new StyledTextBuilder();
-      stb.Append(li[i], reg_font, Colors.Black);
-      currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
+      y_space_needed += nlead;
      }
 
-     if (ylimit - currenty < nlead)
+     if (currenty > label_header & !string.IsNullOrEmpty(Gb.Controls[0].Text))
      {
-      PrintJob argpjob2 = (PrintJob)pjob;
-      DieCutLabel arglabel2 = (DieCutLabel)Label;
-      Output_label(ref argpjob2, ref arglabel2, labelno);
-      DieCutLabel arglbl3 = (DieCutLabel)Label;
-      currenty = New_label(ref arglbl3, ref labelno);
+      y_space_needed += nlead / 2;
+     }
+
+     if (ylimit - currenty < y_space_needed)
+     {
+      Output_label(ref pjob, ref Label, labelno);
+      currenty = New_label(ref Label, ref labelno);
       if (labelno > labels_number)
       {
        break;
       }
      }
+
+     if (currenty > label_header & !string.IsNullOrEmpty(Gb.Controls[0].Text))
+     {
+      currenty += nlead / 2;
+     }
+
+     stb = new StyledTextBuilder();
+     if (!string.IsNullOrEmpty(Gb.Controls[0].Text))
+     {
+      stb.Append(Gb.Controls[0].Text, bld_font, Colors.Black);
+      currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
+     }
+    }
+
+    if (!string.IsNullOrEmpty(Gb.Controls[1].Text))
+    {
+     lis = Gb.Controls[1].Text;
+     elines.Clear();
+     if ((lines_setting ?? "") == "Label")
+     {
+      lis = this.Adjust_lines(lis, "File");
+     }
+
+     lis = Adjust_lines(lis, "Label", elines);
+     li = Regex.Split(lis, @"\r\n|\n");
+     int lic = li.Count();
+     if (max_rec[Bnum] > 0 & lic > max_rec[Bnum])
+     {
+      lic = max_rec[Bnum];
+      int iadj = 0;
+      foreach (KeyValuePair<int, int> kvp in elines)
+      {
+       if (kvp.Key <= lic)
+       {
+        iadj = iadj + kvp.Value;
+       }
+      }
+
+      lic = lic + iadj;
+     }
+
+     for (int i = 0; i <= li.Count() - 1; i++)
+     {
+      if (string.IsNullOrEmpty(li[i]))
+      {
+       currenty += nlead;
+      }
+      else
+      {
+       stb = new StyledTextBuilder();
+       stb.Append(li[i], reg_font, Colors.Black);
+       currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
+      }
+
+      if (ylimit - currenty < nlead)
+      {
+       Output_label(ref pjob, ref Label, labelno);
+       currenty = New_label(ref Label, ref labelno);
+       if (labelno > labels_number)
+       {
+        break;
+       }
+      }
+     }
     }
    }
-
    if (currenty > label_header)
    {
-    PrintJob argpjob3 = (PrintJob)pjob;
-    DieCutLabel arglabel3 = (DieCutLabel)Label;
-    Output_label(ref argpjob3, ref arglabel3, labelno);
+    Output_label(ref pjob, ref Label, labelno);
    }
 
    if (!Preview)
@@ -880,25 +827,158 @@ namespace Medical_Profile
    ctb.ValueChanged += Cudchange;
   }
 
-  private async void Form1_LoadAsync(object sender, EventArgs e)
+  private void Set_Size(int Xval, int Yval)
   {
-   int xsize = 365;
-   int ysize = 192;
+   int Oldmax = MaximumSize.Height;
+   MinimumSize = new Size(Xval, Originaly + H_delta);
+   MaximumSize = new Size(0, 0);
+   Size = new Size(Xval, Yval);
+   if (Pe == null)
+    MaximumSize = new Size(Xval, Yval);
+   else
+    MaximumSize = new Size(Xval, Pe.Bottom + H_delta + 2 * Ymargin);
+  }
+  private GroupBox gen_gb(int blockno, int xpos, int ypos)
+  {
    int tboxsz = 20;
-   int blockno = 1;
-   int i;
-   int k;
-   //  string fs = null;
+
    ToolStripMenuItem tsi;
    ToolStripMenuItem ins;
    ToolStripMenuItem swp;
    ContextMenuStrip cm;
    GroupBox obox;
-   ///  object o1 = null;
-   // string fnam = null;
-   //   Ath_block abp = null;
-   //   string l1cfn = null;
+
+   var bi = new Blk_info() { num = blockno };
+
+   blocks[blockno] = bi;
+   max_rec[blockno] = 0;
+   fieldsmr["MR" + blockno.ToString() + ":"] = blockno;
+
+   obox = new GroupBox()
+   {
+    Size = new Size(Xsize, Ysize),
+    Location = new Point(xpos, ypos),
+    Name = "GB" + blockno.ToString(),
+    Tag = blockno
+   };
+
+   gpn[blockno] = obox.Name;
+   cm = new ContextMenuStrip();
+   cm.Leave += Cm_leave;
+   tsi = new ToolStripMenuItem()
+   {
+    Text = "Drop This Block",
+    Name = blockno.ToString(),
+    Tag = 0
+   };
+   tsi.Click += Menudrp_Click;
+   cm.Items.Add(tsi);
+   ins = new ToolStripMenuItem()
+   {
+    Text = "Insert Block Before",
+    Name = blockno.ToString(),
+    Tag = 1
+   };
+   ins.Click += Menuins_Click;
+   cm.Items.Add(ins);
+   swp = new ToolStripMenuItem()
+   {
+    Text = "Swap Block Before",
+    Name = blockno.ToString(),
+    Tag = 2
+   };
+   swp.Click += Menuswp_Click;
+   cm.Items.Add(swp);
+   obox.ContextMenuStrip = cm;
+   Setupdn(ref cm, blockno, cm.Items.Count);
+   var hbox = new TextBox()
+   {
+    Text = " ",
+    Size = new Size(Xsize - 2 * Ymargin, tboxsz),
+    Location = new Point(Ymargin, margin3),
+    Name = obox.Name + "H:",
+    Tag = blockno,
+    Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Bold, GraphicsUnit.Point),
+    Enabled = false
+   };
+   gph[blockno] = hbox.Name;
+   fieldsgb.Add(hbox.Name);
+   hbox.Enter += Textbox_enter;
+   hbox.Leave += Leave_fld;
+   cm = new ContextMenuStrip();
+   cm.Leave += Cm_leave;
+   tsi = new ToolStripMenuItem()
+   {
+    Text = "Drop This Block",
+    Name = blockno.ToString()
+   };
+   tsi.Click += Menudrp_Click;
+   cm.Items.Add(tsi);
+   ins = new ToolStripMenuItem()
+   {
+    Text = "Insert Block Before",
+    Name = blockno.ToString()
+   };
+   ins.Click += Menuins_Click;
+   cm.Items.Add(ins);
+   swp = new ToolStripMenuItem()
+   {
+    Text = "Swap Block Before",
+    Name = blockno.ToString()
+   };
+   swp.Click += Menuswp_Click;
+   cm.Items.Add(swp);
+   Setupdn(ref cm, blockno, cm.Items.Count);
+   hbox.ContextMenuStrip = cm;
+   obox.Controls.Add(hbox);
+   var rbox = new RichTextBox()
+   {
+    Text = " ",
+    WordWrap = false,
+    Size = new Size(Xsize - 2 * Ymargin, Ysize - 2 * Ymargin - margin3 - tboxsz),
+    Location = new Point(Ymargin, tboxsz + Ymargin + margin3),
+    Name = obox.Name + "B:",
+    Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Regular, GraphicsUnit.Point),
+    Enabled = false
+   };
+   gpb[blockno] = rbox.Name;
+   fieldsgb.Add(rbox.Name);
+   rbox.Enter += Rtbbox_enter;
+   rbox.Leave += Leave_fld;
+   cm = new ContextMenuStrip();
+   cm.Leave += Cm_leave;
+   tsi = new ToolStripMenuItem()
+   {
+    Text = "Drop This Block",
+    Name = blockno.ToString()
+   };
+   tsi.Click += Menudrp_Click;
+   cm.Items.Add(tsi);
+   ins = new ToolStripMenuItem()
+   {
+    Text = "Insert Block Before",
+    Name = blockno.ToString()
+   };
+   ins.Click += Menuins_Click;
+   cm.Items.Add(ins);
+   swp = new ToolStripMenuItem()
+   {
+    Text = "Swap Block Before",
+    Name = blockno.ToString()
+   };
+   swp.Click += Menuswp_Click;
+   cm.Items.Add(swp);
+   Setupdn(ref cm, blockno, cm.Items.Count);
+   rbox.ContextMenuStrip = cm;
+   obox.Controls.Add(rbox);
+   return obox;
+  }
+  private async void Form1_LoadAsync(object sender, EventArgs e)
+  {
+   ContextMenuStrip cm;
+
    loading = true;
+
    if (run_timer)
    {
     Tgp.Visible = true;
@@ -911,21 +991,18 @@ namespace Medical_Profile
    var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile");
    drive_label_encoded = null;
    eval_encoded = null;
-   //  fnam = null;
    ath_blist.Clear();
-   installed_version = Conversions.ToString(key.GetValue("version", null));
+   installed_version = key.GetValue("version", null).ToString();
 
-
-   /* TODO ERROR: Skipped IfDirectiveTrivia */
-   if (!((Properties.Settings.Default.User_number ?? "") == (string.Empty ?? "")))
+   if (!string.IsNullOrEmpty(Properties.Settings.Default.User_number))
    {
     testmode = true;
     Handle_testmode(Properties.Settings.Default.User_number);
    }
-   /* TODO ERROR: Skipped EndIfDirectiveTrivia */
+
    if (!testmode)
    {
-    eval_encoded = Conversions.ToString(key.GetValue("eval", null));
+    eval_encoded = key.GetValue("eval", null).ToString();
     if (eval_encoded is object)
     {
      file_access = true;
@@ -933,13 +1010,13 @@ namespace Medical_Profile
 
     if (!file_access)
     {
-     drive_label_encoded = Conversions.ToString(key.GetValue("Label", null));
+     drive_label_encoded = key.GetValue("Label", null).ToString();
      if (drive_label_encoded is null)
      {
       using (Form f4 = new Formaik(cv))
       {
        f4.ShowDialog();
-       eval_encoded = Conversions.ToString(key.GetValue("eval", null));
+       eval_encoded = key.GetValue("eval", null).ToString(); ;
        if (eval_encoded != default)
        {
         file_access = true;
@@ -948,7 +1025,7 @@ namespace Medical_Profile
 
       if (!file_access)
       {
-       Interaction.MsgBox("Application can not run", MsgBoxStyle.OkOnly, "Registry entry is missing");
+       MessageBox.Show("Application can not run", "Registry entry is missing", MessageBoxButtons.OK);
        Close();
        Environment.Exit(0);
       }
@@ -957,7 +1034,7 @@ namespace Medical_Profile
 
     if (file_access)
     {
-     if (Conversions.ToDouble(Handle_file(eval_encoded)) != 0)
+     if (Convert.ToDouble(Handle_file(eval_encoded)) != 0)
      {
       Application.Exit();
       Environment.Exit(0);
@@ -992,7 +1069,7 @@ namespace Medical_Profile
     installed_version = Mpck.Version;
    }
 
-   if (Mpck.Sec_visible == Conversions.ToBoolean("True"))
+   if (Mpck.Sec_visible)
    {
     sp.Visible = true;
     if (!string.IsNullOrEmpty(Mpck.Sptitle))
@@ -1015,148 +1092,39 @@ namespace Medical_Profile
     secph.Enabled = false;
    }
 
-   minimum_blocks = Conversions.ToInteger(Mpck.Minimum_blocks);
-   blocks_number = Conversions.ToInteger(Mpck.Blocks);
+   minimum_blocks = Convert.ToInt32(Mpck.Minimum_blocks);
+   blocks_number = Convert.ToInt32(Mpck.Blocks);
    blocks_number = 9;
-   labels_number = Conversions.ToInteger(Mpck.Labels);
-   lines_number = Conversions.ToInteger(Mpck.Lines);
+   int BPR = 3;
+   labels_number = Convert.ToInt32(Mpck.Labels);
+   lines_number = Convert.ToInt32(Mpck.Lines);
    lines_number = 10;
    labels_number = 5;
+
    total_lines = lines_number * labels_number;
+
    Patientid.Text = "";
-   int ystart = GroupBox3.Location.Y + GroupBox3.Size.Height + margin2;
-   originaly = Size.Height - 36;
-   //base.SuspendPaint();
-   var loopTo = 3 * ystart + ysize + margin1;
-   for (i = ystart; i <= loopTo; i += ysize + margin1)
+
+   Screen_Area = Screen.PrimaryScreen.WorkingArea;
+
+   Originaly = ClientSize.Height;
+
+   Ystart = Originaly;
+
+   int Yval = Ymargin;
+
+   for (int y = 1; y <= blocks_number / BPR; y++)
    {
-    var loopTo1 = margin2 + 3 * xsize + 2 * margin2;
-    for (k = margin2; k <= loopTo1; k += xsize + margin2)
+    int Xval = Xmargin;
+    for (int x = 1; x <= BPR; x++)
     {
-     var bi = new Blk_info() { num = blockno };
-     blocks[blockno] = bi;
-     max_rec[blockno] = 0;
-     fieldsmr["MR" + blockno.ToString() + ":"] = blockno;
-     obox = new GroupBox()
-     {
-      Size = new Size(xsize, ysize),
-      Location = new Point(k, i),
-      Name = "GB" + blockno.ToString(),
-      Tag = blockno
-     };
-     gpn[blockno] = obox.Name;
-     cm = new ContextMenuStrip();
-     cm.Leave += Cm_leave;
-     tsi = new ToolStripMenuItem()
-     {
-      Text = "Drop This Block",
-      Name = blockno.ToString(),
-      Tag = 0
-     };
-     tsi.Click += Menudrp_Click;
-     cm.Items.Add(tsi);
-     ins = new ToolStripMenuItem()
-     {
-      Text = "Insert Block Before",
-      Name = blockno.ToString(),
-      Tag = 1
-     };
-     ins.Click += Menuins_Click;
-     cm.Items.Add(ins);
-     swp = new ToolStripMenuItem()
-     {
-      Text = "Swap Block Before",
-      Name = blockno.ToString(),
-      Tag = 2
-     };
-     swp.Click += Menuswp_Click;
-     cm.Items.Add(swp);
-     obox.ContextMenuStrip = cm;
-     Setupdn(ref cm, blockno, cm.Items.Count);
-     var hbox = new TextBox()
-     {
-      Text = " ",
-      Size = new Size(xsize - 2 * margin1, tboxsz),
-      Location = new Point(margin1, margin3),
-      Name = obox.Name + "H:",
-      Tag = blockno,
-      Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Bold, GraphicsUnit.Point, Conversions.ToByte(0)),
-      Enabled = false
-     };
-     gph[blockno] = hbox.Name;
-     fieldsgb.Add(hbox.Name);
-     hbox.Enter += Textbox_enter;
-     hbox.Leave += Leave_fld;
-     cm = new ContextMenuStrip();
-     cm.Leave += Cm_leave;
-     tsi = new ToolStripMenuItem()
-     {
-      Text = "Drop This Block",
-      Name = blockno.ToString()
-     };
-     tsi.Click += Menudrp_Click;
-     cm.Items.Add(tsi);
-     ins = new ToolStripMenuItem()
-     {
-      Text = "Insert Block Before",
-      Name = blockno.ToString()
-     };
-     ins.Click += Menuins_Click;
-     cm.Items.Add(ins);
-     swp = new ToolStripMenuItem()
-     {
-      Text = "Swap Block Before",
-      Name = blockno.ToString()
-     };
-     swp.Click += Menuswp_Click;
-     cm.Items.Add(swp);
-     Setupdn(ref cm, blockno, cm.Items.Count);
-     hbox.ContextMenuStrip = cm;
-     obox.Controls.Add(hbox);
-     var rbox = new RichTextBox()
-     {
-      Text = " ",
-      WordWrap = false,
-      Size = new Size(xsize - 2 * margin1, ysize - 2 * margin1 - margin3 - tboxsz),
-      Location = new Point(margin1, tboxsz + margin1 + margin3),
-      Name = obox.Name + "B:",
-      Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Regular, GraphicsUnit.Point, Conversions.ToByte(0)),
-      Enabled = false
-     };
-     gpb[blockno] = rbox.Name;
-     fieldsgb.Add(rbox.Name);
-     rbox.Enter += Rtbbox_enter;
-     rbox.Leave += Leave_fld;
-     cm = new ContextMenuStrip();
-     cm.Leave += Cm_leave;
-     tsi = new ToolStripMenuItem()
-     {
-      Text = "Drop This Block",
-      Name = blockno.ToString()
-     };
-     tsi.Click += Menudrp_Click;
-     cm.Items.Add(tsi);
-     ins = new ToolStripMenuItem()
-     {
-      Text = "Insert Block Before",
-      Name = blockno.ToString()
-     };
-     ins.Click += Menuins_Click;
-     cm.Items.Add(ins);
-     swp = new ToolStripMenuItem()
-     {
-      Text = "Swap Block Before",
-      Name = blockno.ToString()
-     };
-     swp.Click += Menuswp_Click;
-     cm.Items.Add(swp);
-     Setupdn(ref cm, blockno, cm.Items.Count);
-     rbox.ContextMenuStrip = cm;
-     obox.Controls.Add(rbox);
-     Controls.Add(obox);
-     bl_available[blockno] = obox.Name;
-     blockno += 1;
+     var gbg = gen_gb(Blockno, Xval, Yval);
+     Grpblocks[Blockno] = gbg;
+     bl_available[Blockno] = gbg.Name;
+     Xval += Xsize + Xmargin;
+     Blockno++;
     }
+    Yval += Ysize + Ymargin;
    }
 
    cm = new ContextMenuStrip();
@@ -1176,7 +1144,7 @@ namespace Medical_Profile
    itl_font = new FontInfo("Calibri Light Italic", points, DYMO.Label.Framework.FontStyle.Italic);
    try
    {
-    Label = (IDieCutLabel)Framework.Open("mpc1.label");
+    Label = (DieCutLabel)Framework.Open("mpc1.label");
     foreach (string o in Label.ObjectNames)
     {
      if (!string.IsNullOrEmpty(o))
@@ -1189,29 +1157,39 @@ namespace Medical_Profile
    {
     MessageBox.Show(ex.Message);
    }
+   
    Printers.Items.Clear();
    pnames = Framework.GetPrinters();
-   foreach (var p in pnames)
-    Printers.Items.Add(p.Name);
-   if (Printers.Items.Count > 0)
+   if (pnames != null && pnames.Count() > 0)
    {
-    Printers.SelectedIndex = 0;
-   }
-
-   printer = pnames.GetPrinterByName(Printers.SelectedItem.ToString());
-   if (printer is ILabelWriterPrinter)
-   {
-    labelWriterPrinter = (ILabelWriterPrinter)printer;
-    lprintparams = new LabelWriterPrintParams()
+    foreach (var p in pnames)
+     Printers.Items.Add(p.Name);
+    if (Printers.Items.Count > 0)
     {
-     Copies = 1,
-     FlowDirection = DYMO.Label.Framework.FlowDirection.LeftToRight,
-     RollSelection = RollSelection.Auto
-    };
+     Printers.SelectedIndex = 0;
+    }
+
+    printer = pnames.GetPrinterByName(Printers.SelectedItem.ToString());
+
+
+    if (printer is ILabelWriterPrinter)
+    {
+     labelWriterPrinter = (ILabelWriterPrinter)printer;
+     lprintparams = new LabelWriterPrintParams()
+     {
+      Copies = 1,
+      FlowDirection = DYMO.Label.Framework.FlowDirection.LeftToRight,
+      RollSelection = RollSelection.Auto
+     };
+    }
+   }
+   else
+   {
+    Printmenuitem.Visible = false;
+    Printmenuitem.Enabled = false;
    }
 
    Reset_fields();
-   //base.ResumePaint();
    if (Properties.Settings.Default.first_run_flag)
    {
     Properties.Settings.Default.first_run_flag = false;
@@ -1224,28 +1202,28 @@ namespace Medical_Profile
    Text = "Medical Profile Card (" + installed_version + ")";
    var claims = Gen_Claims();
    aws_body.Clear();
-   aws_body["ukey"] = Enc.Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
+   aws_body["ukey"] = Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
    Text = "Medical Profile Card (" + installed_version + ")" + " - Loading Practice Information";
    Update();
    if (run_timer)
    {
     Ettb.Text = start_timer(SW);
    }
-
+   
    Application.UseWaitCursor = true;
    L1_ret = await Aws.Get_Level1_aysnc(Mpck.Url, enck, Mpck.Salt, claims, aws_body);
    Application.UseWaitCursor = false;
    if (L1_ret.code != 200)
    {
-    Interaction.MsgBox("Returned Code(" + L1_ret.code.ToString() + ") - " + L1_ret.message, MsgBoxStyle.OkOnly, "Error getting practice information");
+    MessageBox.Show("Returned Code(" + L1_ret.code.ToString() + ") - " + L1_ret.message, "Error getting practice information", MessageBoxButtons.OK);
     Application.Exit();
    }
-
+   
    Text = "Medical Profile Card (" + installed_version + ")";
    Update();
    if (L1_ret.Prc is null)
    {
-    Interaction.MsgBox("Unable to get practice information", MsgBoxStyle.OkOnly, "Error in information returned");
+    MessageBox.Show("Unable to get practice information", "Error in information returned");
     Application.Exit();
    }
 
@@ -1254,54 +1232,44 @@ namespace Medical_Profile
    Load_Department(L1_ret);
    Load_providers(L1_ret);
 
-   foreach (string s in L1_ret.Block_names)
-   {
-    var b = new Blk_entry()
-    {
-     State = (int)Load_state.not_in_use,
-     Num = -1
-    };
-    bl_loaded[s] = b;
-   }
+   bl_loaded.Clear();
 
    Set_saved_items(L1_ret.dsl);
 
    Patientid.Select();
 
+   Set_empgb();
+
    loading = false;
    Data_altered = false;
    Dstate = Data_state.NoEdit;
- //  priph.Visible = true;
- //  prv_combo.Visible = false;
    if (run_timer)
    {
     Ettb.Text = stop_timer(SW);
    }
   }
 
-  private Dictionary<string, object> Gen_Claims()
+  public Dictionary<string, object> Gen_Claims()
   {
    var nw = DateTimeOffset.UtcNow;
    var ew = nw.AddMinutes(5);
-   // Dim ew As DateTimeOffset = nw.AddYears(1)
    IDateTimeProvider provider = new UtcDateTimeProvider();
    var payload = new Dictionary<string, object>() { { "aud", "http: //medicalprofilecard.com" }, { "exp", ew.ToUnixTimeSeconds() }, { "iss", Mpck.Email }, { "label", drive_label }, { "key", Mpck.Mkey } };
    if (file_access)
    {
-    payload["cid"] = Enc.Enc256.Encrypt(cid, Set_key(Mpck.Secret, Mpck.Dlab), Convert.ToInt32(Mpck.Dlab.Substring(3)) + Mpck.Iterations);
+    payload["cid"] = Enc256.Encrypt(cid, Set_key(Mpck.Secret, Mpck.Dlab), Convert.ToInt32(Mpck.Dlab.Substring(3)) + Mpck.Iterations);
     payload["f1t"] = USB_Ftime.ToUnixTimeSeconds();
    }
 
-   if (ftime is object && Conversions.ToInteger(Conversions.ToDouble(ftime) > 0) != 0)
+   if (ftime is object && Convert.ToInt32(ftime) > 0)
    {
     payload["f1t"] = ftime;
    }
 
-   return payload;
-  }
+   payload["un"] = Environment.UserName;
+   payload["mn"] = Environment.MachineName;
 
-  private void Printers_SelectionChangeCommitted(object sender, EventArgs e)
-  {
+   return payload;
   }
 
   private void ExitMenuItem_Click(object sender, EventArgs e)
@@ -1329,7 +1297,6 @@ namespace Medical_Profile
    int pline;
    RichTextBox rtb;
    TextBox tb;
-   //  int ln = 0;
    Blk_info bi = null;
    int bn = 0;
    foreach (Control cb in Controls)
@@ -1344,7 +1311,6 @@ namespace Medical_Profile
      bi = blocks[bn];
      bi.lines = rtb.Lines.Length;
      bi.ll = new int[bi.lines + 1];
-     // ln = 0;
      Set_ll(rtb, bn);
      if ((ls ?? "") == "File")
      {
@@ -1415,61 +1381,39 @@ namespace Medical_Profile
     }
    }
   }
-
-  private void DocumentMenuItem_Click(object sender, EventArgs e)
-  {
-   lines_setting = "File";
-   Properties.Settings.Default.lines_setting = lines_setting;
-   Properties.Settings.Default.Save();
-   Redo_blocks(lines_setting);
-  }
-
-  private void LabelMenuItem_Click(object sender, EventArgs e)
-  {
-   lines_setting = "Label";
-   Properties.Settings.Default.lines_setting = lines_setting;
-   Properties.Settings.Default.Save();
-   Redo_blocks(lines_setting);
-  }
-
-  private void LblPrintMenuItem_Click(object sender, EventArgs e)
-  {
-   Reset_labels();
-  }
-
-  private void LblDrawMenuItem_Click(object sender, EventArgs e)
-  {
-   Reset_labels();
-  }
-
+ 
   private void Leave_fld(object sender, EventArgs e)
   {
    RichTextBox rtb;
    TextBox tb;
-   GroupBox gb;
-   string field = null;
 
-   if ((sender.GetType().Name ?? "") == "GroupBox")
-   {
-    gb = (GroupBox)sender;
-    field = gb.Name;
-    if (!field.StartsWith("GB"))
-     return;
-   }
+   Control C1 = sender as Control;
 
-   if ((sender.GetType().Name ?? "") == "RichTextBox")
+   String Name = C1.Name;
+
+   string Type = C1.GetType().Name;
+
+   if (!Name.StartsWith("GB"))
+    return;
+
+   int Num = Convert.ToInt32(Name.Substring(2, 1));
+
+   if (Type == "RichTextBox")
    {
-    rtb = (RichTextBox)sender;
-    tb = (TextBox)rtb.Parent.Controls[0];
-    if (labgb.ContainsKey(field))
+    rtb = C1 as RichTextBox;
+
+    tb = rtb.Parent.Controls[0] as TextBox;
+
+    if (labgb.ContainsKey(Name))
     {
-     if (!((labgb[field] ?? "") == (rtb.Text ?? "")))
+     if (!((labgb[Name] ?? "") == (rtb.Text ?? "")))
      {
-      labgb[field] = rtb.Text;
-      if (bl_loaded.ContainsKey(Conversions.ToString(tb.Tag)))
+      labgb[Name] = rtb.Text;
+
+      if (bl_loaded.ContainsKey(tb.Tag.ToString()))
       {
-       bl_loaded[Conversions.ToString(tb.Tag)].Num = default;
-       bl_loaded[Conversions.ToString(tb.Tag)].State = (int)Load_state.not_loaded_byc;
+       bl_loaded[tb.Tag.ToString()].Num = default;
+       bl_loaded[tb.Tag.ToString()].State = (int)Load_state.not_loaded_byc;
       }
 
       Set_empgb();
@@ -1477,35 +1421,33 @@ namespace Medical_Profile
     }
     else
     {
-     labgb[field] = rtb.Text;
+     labgb[Name] = rtb.Text;
     }
    }
    else
    {
-    tb = (TextBox)sender;
+    tb = C1 as TextBox;
     if ((tb.Tag.ToString() ?? "") != (tb.Text ?? ""))
     {
-     if (bl_loaded.ContainsKey(Conversions.ToString(tb.Tag)))
+     if (bl_loaded.ContainsKey(tb.Tag.ToString()))
      {
-      bl_loaded[Conversions.ToString(tb.Tag)].Num = default;
-      bl_loaded[Conversions.ToString(tb.Tag)].State = (int)Load_state.not_loaded_byc;
+      bl_loaded[tb.Tag.ToString()].Num = default;
+      bl_loaded[tb.Tag.ToString()].State = (int)Load_state.not_loaded_byc;
      }
 
      Set_empgb();
     }
 
-    if (labgb.ContainsKey(field))
+    if (labgb.ContainsKey(Name))
     {
-     if (!((labgb[field] ?? "") == (tb.Text ?? "")))
+     if (!((labgb[Name] ?? "") == (tb.Text ?? "")))
      {
-      labgb[field] = tb.Text;
-      // Data_altered = True
+      labgb[Name] = tb.Text;
      }
     }
     else
     {
-     labgb[field] = tb.Text;
-     // Data_altered = True
+     labgb[Name] = tb.Text;
     }
    }
   }
@@ -1513,10 +1455,10 @@ namespace Medical_Profile
   private void Load_block_click(object sender, EventArgs e)
   {
    ToolStripMenuItem item = (ToolStripMenuItem)sender;
-   string blk = (string)item.Tag;
+   string blk = item.Tag.ToString();
    if (bl_used.Count == blocks_number)
    {
-    Interaction.MsgBox("Unable to load " + blk, MsgBoxStyle.Information, "All Blocks are in use");
+    MessageBox.Show("Unable to load " + blk, "All Blocks are in use");
    }
    else
    {
@@ -1526,18 +1468,23 @@ namespace Medical_Profile
      bl_used[fnum] = bl_available.First().Value;
      int lnum = bl_used.Getlkey();
      bl_available.Remove(fnum);
-     Controls[gpn[lnum]].Visible = false;
-     Controls[gpn[lnum]].Controls[0].Text = blk;
-     Controls[gpn[lnum]].Controls[0].Tag = blk;
-     Controls[gpn[lnum]].Controls[0].Enabled = true;
-     Controls[gpn[lnum]].Controls[1].Text = string.Join(Constants.vbCrLf, L2_ret.blks[blk]);
-     Controls[gpn[lnum]].Controls[1].Enabled = true;
+     Grpblocks[lnum].Visible = false;
+     Grpblocks[lnum].Controls[0].Text = blk;
+     Grpblocks[lnum].Controls[0].Tag = blk;
+     Grpblocks[lnum].Controls[0].Enabled = true;
+     Grpblocks[lnum].Controls[1].Text = string.Join("\n", L2_ret.blks[blk]);
+     Grpblocks[lnum].Controls[1].Enabled = true;
      Ath_setcolor(lnum);
-     Controls[gpn[lnum]].Visible = true;
-     labgb[gph[lnum]] = blk;
-     labgb[gpb[lnum]] = string.Join(Constants.vbCrLf, L2_ret.blks[blk]);
-     bl_loaded[blk].Num = lnum;
-     bl_loaded[blk].State = (int)Load_state.loaded;
+     Grpblocks[lnum].Visible = true;
+     labgb[gph[lnum]] = blk.ToString();
+     labgb[gpb[lnum]] = string.Join("\n", L2_ret.blks[blk]);
+     var blke = new Blk_entry()
+     {
+      header = blk,
+      State = (int)Load_state.loaded,
+      Num = lnum
+     };
+     bl_loaded[blk] = blke;
     }
 
     Scsiz(Width);
@@ -1548,9 +1495,10 @@ namespace Medical_Profile
 
   private void Menudrp_Click(object sender, EventArgs e)
   {
-   int objn = Conversions.ToInteger(((ToolStripMenuItem)sender).Name);
-   GroupBox gb = (GroupBox)Controls[gpn[objn]];
-   string Tag = Conversions.ToString(gb.Controls[0].Tag);
+   int objn = Convert.ToInt32(((ToolStripMenuItem)sender).Name);
+   GroupBox gb = Grpblocks[objn];
+   gb.Visible = false;
+   string Tag = gb.Controls[0].Tag.ToString();
    if (bl_loaded.ContainsKey(Tag))
    {
     if (bl_loaded[Tag].State == (int)Load_state.loaded_byc)
@@ -1564,27 +1512,37 @@ namespace Medical_Profile
     }
    }
 
-   for (int ib = objn, loopTo = bl_used.Getlkey() - 1; ib <= loopTo; ib += 1)
+   int Last_block = bl_used.Getlkey() - 1;
+
+   for (int ib = objn; ib <= Last_block; ib += 1)
+   {
     Move_blk(ib + 1, ib);
+   }
+
+   gb.Visible = true;
+
    labgb[gph[bl_used.Getlkey()]] = string.Empty;
    labgb[gpb[bl_used.Getlkey()]] = string.Empty;
-   Controls[bl_used.Getlval()].Visible = false;
+
+   Grpblocks[bl_used.Getlkey()].Visible = false;
+
    bl_available[bl_used.Getlkey()] = bl_used.Getlval();
    bl_used.Remove(bl_used.Getlkey());
-   Set_empgb();
+
    Scsiz(Width);
+   Set_empgb();
   }
 
   private void Move_blk(int fbn, int tbn)
   {
-   GroupBox gbf = (GroupBox)Controls[gpn[fbn]];
-   GroupBox gbt = (GroupBox)Controls[gpn[tbn]];
+   GroupBox gbf = Grpblocks[fbn];
+   GroupBox gbt = Grpblocks[tbn];
    gbt.Controls[0].Tag = gbf.Controls[0].Tag;
    gbt.Enabled = true;
-   if (bl_loaded.ContainsKey(Conversions.ToString(gbt.Controls[0].Tag)))
+   if (bl_loaded.ContainsKey(gbt.Controls[0].Tag.ToString()))
    {
-    bl_loaded[Conversions.ToString(gbt.Controls[0].Tag)].Num = tbn;
-    bl_loaded[Conversions.ToString(gbt.Controls[0].Tag)].State = (int)Load_state.loaded;
+    bl_loaded[gbt.Controls[0].Tag.ToString()].Num = tbn;
+    bl_loaded[gbt.Controls[0].Tag.ToString()].State = (int)Load_state.loaded;
    }
 
    gbt.Controls[0].Enabled = true;
@@ -1604,11 +1562,11 @@ namespace Medical_Profile
 
   private void Menuins_Click(object sender, EventArgs e)
   {
-   int objn = Conversions.ToInteger(((ToolStripMenuItem)sender).Name);
-   GroupBox gb = (GroupBox)Controls[gpn[objn]];
+   int objn = Convert.ToInt32(((ToolStripMenuItem)sender).Name);
+   GroupBox gb = (GroupBox)Grpblocks[objn];
    if (bl_used.Count == blocks_number)
    {
-    Interaction.MsgBox("Unable to insert block", MsgBoxStyle.OkOnly, "All blocks are in use");
+    MessageBox.Show("Unable to insert block", "All blocks are in use");
     return;
    }
 
@@ -1623,25 +1581,25 @@ namespace Medical_Profile
    gb.Controls[0].Enabled = true;
    gb.Controls[1].Enabled = true;
    gb.Controls[0].Tag = gb.Tag;
-   Controls[gpn[bl_used.Getlkey()]].Visible = true;
+   Grpblocks[bl_used.Getlkey()].Visible = true;
    Set_empgb();
    Scsiz(Width);
   }
 
   private void Menuswp_Click(object sender, EventArgs e)
   {
-   int objn = Conversions.ToInteger(((ToolStripMenuItem)sender).Name);
+   int objn = Convert.ToInt32(((ToolStripMenuItem)sender).Name);
    if (objn == 1)
    {
     return;
    }
 
-   GroupBox gb1 = (GroupBox)Controls[gpn[objn]];
-   GroupBox gb2 = (GroupBox)Controls[gpn[objn - 1]];
-   string n1 = Conversions.ToString(gb1.Tag);
-   string n2 = Conversions.ToString(gb2.Tag);
-   string tag1 = Conversions.ToString(gb1.Controls[0].Tag);
-   string tag2 = Conversions.ToString(gb2.Controls[0].Tag);
+   GroupBox gb1 = Grpblocks[objn];
+   GroupBox gb2 = Grpblocks[objn - 1];
+   string n1 = gb1.Tag.ToString();
+   string n2 = gb2.Tag.ToString();
+   string tag1 = gb1.Controls[0].Tag.ToString();
+   string tag2 = gb2.Controls[0].Tag.ToString();
    if (bl_loaded.ContainsKey(tag2))
    {
     bl_loaded[tag2].Num = objn;
@@ -1658,33 +1616,24 @@ namespace Medical_Profile
    labgb[gpb[objn - 1]] = labgb[gpb[objn]];
    labgb[gph[objn]] = sh;
    labgb[gpb[objn]] = sb;
-   Controls[gpn[objn - 1]].Controls[0].Text = labgb[gph[objn - 1]];
-   Controls[gpn[objn - 1]].Controls[1].Text = labgb[gpb[objn - 1]];
-   Set_ro(Controls[gpn[objn - 1]].Controls[0]);
-   Set_ro(Controls[gpn[objn - 1]].Controls[1]);
-   Controls[gpn[objn]].Controls[0].Text = labgb[gph[objn]];
-   Controls[gpn[objn]].Controls[1].Text = labgb[gpb[objn]];
-   Set_ro(Controls[gpn[objn]].Controls[0]);
-   Set_ro(Controls[gpn[objn]].Controls[1]);
+   Grpblocks[objn - 1].Controls[0].Text = labgb[gph[objn - 1]];
+   Grpblocks[objn - 1].Controls[1].Text = labgb[gpb[objn - 1]];
+   Set_ro(Grpblocks[objn - 1].Controls[0]);
+   Set_ro(Grpblocks[objn - 1].Controls[1]);
+   Grpblocks[objn].Controls[0].Text = labgb[gph[objn]];
+   Grpblocks[objn].Controls[1].Text = labgb[gpb[objn]];
+   Set_ro(Grpblocks[objn].Controls[0]);
+   Set_ro(Grpblocks[objn].Controls[1]);
    Set_empgb();
-  }
-
-  private void Showlabel(object sender, EventArgs e)
-  {
-   string bn = ((ToolStripMenuItem)sender).Name;
-   if (f3s.ContainsKey(bn))
-   {
-    f3s[bn].ShowDialog();
-   }
   }
 
   private void Cudchange(object sender, EventArgs e)
   {
-   int objn = Conversions.ToInteger(((TSnumud)sender).Name);
+   int objn = Convert.ToInt32(((TSnumud)sender).Name);
    TSnumud tsi = (TSnumud)sender;
    int tg1 = tsi.aml;
    int tgno = tsi.udl;
-   max_rec[Conversions.ToInteger(tsi.Name)] = tsi.Value;
+   max_rec[Convert.ToInt32(tsi.Name)] = tsi.Value;
    Redo_blocks(lines_setting);
    if (tsi.Value == 0)
    {
@@ -1704,13 +1653,7 @@ namespace Medical_Profile
    ContextMenuStrip cm = (ContextMenuStrip)sender;
    cm.Close();
   }
-
-  private void Cm_leave_m(object sender, EventArgs e)
-  {
-   ContextMenuStrip cm = (ContextMenuStrip)sender;
-   cm.Close();
-  }
-
+ 
   private void Cud_activate(object sender, EventArgs e)
   {
    ToolStripMenuItem tsi;
@@ -1768,83 +1711,28 @@ namespace Medical_Profile
    int bn;
    if (bl_used.Count == blocks_number)
    {
-    Interaction.MsgBox("Unable to add page", MsgBoxStyle.Information, "All are in use");
+    MessageBox.Show("Unable to add page", "All are in use", MessageBoxButtons.OK, MessageBoxIcon.Information);
    }
    else
    {
+    Panels_delete();
     bn = bl_available.First().Key;
     bl_available.Remove(bn);
     bl_used[bn] = gpn[bn];
-    Controls[gpn[bn]].Controls[0].Text = string.Empty;
-    Controls[gpn[bn]].Controls[1].Text = string.Empty;
-    Controls[gpn[bn]].Controls[0].Enabled = true;
-    Controls[gpn[bn]].Controls[1].Enabled = true;
-    Controls[gpn[bn]].Visible = true;
-    Set_ro(Controls[gpn[bn]].Controls[0]);
-    Set_ro(Controls[gpn[bn]].Controls[1]);
+    Grpblocks[bn].Controls[0].Text = string.Empty;
+    Grpblocks[bn].Controls[1].Text = string.Empty;
+    Grpblocks[bn].Controls[0].Enabled = true;
+    Grpblocks[bn].Controls[1].Enabled = true;
+    Grpblocks[bn].Visible = true;
+    Set_ro(Grpblocks[bn].Controls[0]);
+    Set_ro(Grpblocks[bn].Controls[1]);
     labgb[gph[bn]] = string.Empty;
     labgb[gpb[bn]] = string.Empty;
-    Set_empgb();
     Scsiz(Width);
+    Set_empgb();
    }
   }
-
-  private void Clear_set()
-  {
-   foreach (Control cb in Controls)
-   {
-    if (cb is GroupBox)
-    {
-     foreach (Control cb1 in cb.Controls)
-     {
-      if (cb1 is TextBox | cb1 is RichTextBox)
-      {
-       if (cb1.Font.Italic)
-       {
-        cb1.Text = string.Empty;
-        cb1.Enter -= Field_click;
-        if (bfont[cb1.Name])
-        {
-         cb1.Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Bold);
-        }
-        else
-        {
-         cb1.Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Regular);
-        }
-       }
-      }
-     }
-    }
-   }
-  }
-
-  //private void Set_field(object blk, string val)
-  //{
-  // blk.Text = val;
-  // if (Conversions.ToBoolean(blk.Font.Bold))
-  // {
-  //  bfont[Conversions.ToString(blk.Name)] = true;
-  // }
-  // else
-  // {
-  //  bfont[Conversions.ToString(blk.Name)] = false;
-  // }
-
-  // if (blk is TextBox)
-  // {
-  //  TextBox blk1 = (TextBox)blk;
-  //  blk1.Enter += Field_click;
-  // }
-
-  // if (blk is RichTextBox)
-  // {
-  //  RichTextBox blk1 = (RichTextBox)blk;
-  //  blk1.Enter += Field_click;
-  // }
-
-  // blk.Font = new Font("Calibri Light", 8.25F, System.Drawing.FontStyle.Italic);
-  //}
-
+ 
   private void Field_click(object sender, EventArgs e)
   {
    TextBox blk = (TextBox)sender;
@@ -1878,29 +1766,8 @@ namespace Medical_Profile
    dsaves.SelectedItem = null;
    dsaves.SelectedText = "";
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
+   Dsi = new KeyValuePair<string, Dsave>();
    this.ResumePaint();
-  }
-
-  private void CheckMenuItem(ToolStripMenuItem mnu, ToolStripMenuItem checked_item)
-  {
-   foreach (ToolStripItem item in mnu.DropDownItems)
-   {
-    if (item is ToolStripMenuItem)
-    {
-     ToolStripMenuItem menu_item = (ToolStripMenuItem)item;
-     menu_item.Checked = menu_item == checked_item;
-    }
-   }
-  }
-
-  private void Econtact_Leave(object sender, EventArgs e)
-  {
-   lab1["Emergency Contact:"] = econtact.Text;
-  }
-
-  private void Patient_TextChanged(object sender, EventArgs e)
-  {
-   lab1["Patient Name:"] = Patient.Text;
   }
 
   private void DOB_TextChanged(object sender, EventArgs e)
@@ -1978,8 +1845,8 @@ namespace Medical_Profile
    RichTextBox bx = null;
    TextBox tb;
    Blk_info bi = null;
-   tb = (TextBox)Controls[gpn[bn]].Controls[0];
-   bx = (RichTextBox)Controls[gpn[bn]].Controls[1];
+   tb = (TextBox)Grpblocks[bn].Controls[0];
+   bx = (RichTextBox)Grpblocks[bn].Controls[1];
    bi = blocks[bn];
    bx.SelectAll();
    bx.SelectionBackColor = System.Drawing.Color.White;
@@ -1994,7 +1861,7 @@ namespace Medical_Profile
   {
    RichTextBox bx = null;
    Blk_info bi = null;
-   bx = (RichTextBox)Controls[gpn[bn]].Controls[1];
+   bx = (RichTextBox)Grpblocks[bn].Controls[1];
    bi = blocks[bn];
    if (!gpn.ContainsKey(bn))
    {
@@ -2013,11 +1880,6 @@ namespace Medical_Profile
    bx.Select(0, 0);
    return max_rec[bn];
   }
-
-  private void ChangeMySelectionColor()
-  {
-  }
-
   private int Ath_setcolor(int bn)
   {
    int ln = 0;
@@ -2025,8 +1887,8 @@ namespace Medical_Profile
    int[] ll = null;
    TextBox hx = null;
    RichTextBox bx = null;
-   hx = (TextBox)Controls[gpn[bn]].Controls[0];
-   bx = (RichTextBox)Controls[gpn[bn]].Controls[1];
+   hx = (TextBox)Grpblocks[bn].Controls[0];
+   bx = (RichTextBox)Grpblocks[bn].Controls[1];
    ll = new int[bx.Lines.Length + 1];
    lines = bx.Lines.Length;
    if (!gpn.ContainsKey(bn))
@@ -2084,42 +1946,107 @@ namespace Medical_Profile
 
   private void Set_empgb(bool res_endpoints = false)
   {
+   if (Pe == null)
+    return;
+
+   if (bl_used.Count == 0)
+    return;
+
    GroupBox gb = null;
    GroupBox lb = null;
+   GroupBox gb3 = null;
+
+   Form_Bounds = Bounds;
+
+   Size Cs = ClientSize;
+   Size Fs = Size;
+
+   if (Vsm)
+   {
+    Control c = Pe;
+    var rect = c.RectangleToScreen(c.ClientRectangle);
+    while (c != null)
+    {
+     rect = Rectangle.Intersect(rect, c.RectangleToScreen(c.ClientRectangle));
+     c = c.Parent;
+    }
+    rect = Pe.RectangleToClient(rect);
+
+    Sb = new VScrollBar()
+    {
+     Minimum = 0,
+     Maximum = Pn.Height - rect.Height + 2 * Ymargin
+    };
+
+    if (Vertical_Scroll_Position >= Sb.Minimum && Vertical_Scroll_Position <= Sb.Maximum)
+    {
+     Sb.Value = Vertical_Scroll_Position;
+    }
+
+    if (Sb.Value != 0)
+    {
+     Pn.Top = -Sb.Value;
+    }
+    Sb.ValueChanged += Sb_changed;
+    Pn.Top = -Sb.Value;
+    Pn.SizeChanged += Pn_sizechanged;
+    int M1 = Cs.Width - Pe.Width;
+
+    if (Original_Margin == -1)
+    {
+     Original_Margin = M1;
+    }
+
+    if (M1 < Sb.Width)
+    {
+     M1 = Sb.Width - M1;
+     Set_Size(Width += M1, Height);
+    }
+
+    Pe.Size = new Size(Pe.Width += Sb.Width, Pe.Height);
+    Pe.Controls.Add(Sb);
+    Sb.Location = new Point(Pn.Width, 0);
+    Sb.Size = new Size(Sb.Width, rect.Height);
+    Sb.Visible = true;
+   }
+
    var cm = new ContextMenuStrip();
+
    ToolStripMenuItem ts1 = null;
    ToolStripMenuItem ts2 = null;
+
    int pnxstart = 0;
    int pnystart = 0;
    int pnxsize = 0;
    int pnysize = 0;
-   //  int bnum = 0;
+
    var bmni = new List<ToolStripMenuItem>();
+
    bmni.Clear();
+
    if (emppn is object)
    {
-    Controls.Remove(emppn);
+    Pn.Controls.Remove(emppn);
     emppn.Dispose();
    }
 
-   foreach (ToolStripMenuItem tsi in bmni)
-   {
-   }
-
    emppn = null;
+
+   gb3 = Grpblocks[3];
+
    if (bl_used.Count % 3 != 0)
    {
-    lb = (GroupBox)Controls[bl_used.Getlval()];
+    lb = Grpblocks[bl_used.Getlkey()];
     emppn = new Panel() { Name = "emppn" };
     pnxstart = lb.Location.X + lb.Width + 1;
     if (bl_used.Count < 3)
     {
-     pnystart = lb.Location.Y - 2 * margin1 + 1;
-     gb = (GroupBox)Controls["GB3"];
+     pnystart = lb.Location.Y - 2 * Ymargin + 1;
+     gb = Grpblocks[3];
     }
     else
     {
-     gb = (GroupBox)Controls[("GB" + Conversions.ToString(bl_used.Count / 3 * 3)).ToString()];
+     gb = Grpblocks[bl_used.Count / 3 * 3];
      pnystart = gb.Location.Y + gb.Height + 1;
     }
 
@@ -2132,28 +2059,14 @@ namespace Medical_Profile
    foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
    {
     var b = k.Value;
-    if (L2_ret is null)
-    {
-     continue;
-    }
-
-    if (!L2_ret.blks.ContainsKey(k.Key))
-    {
-     continue;
-    }
-
-    if (L2_ret.blks[k.Key].Count == 0)
-    {
-     continue;
-    }
 
     if (b.State == (int)Load_state.not_loaded | b.State == (int)Load_state.not_loaded_byc | b.State == (int)Load_state.not_in_use)
     {
-     Add_cm(k.Key, cm, ts1, ts2);
+     Add_cm(k.Value.header, cm, ts1, ts2);
      continue;
     }
 
-    if (string.IsNullOrEmpty(Controls[gpn[b.Num]].Controls[1].Text))
+    if (string.IsNullOrEmpty(Grpblocks[b.Num].Controls[1].Text))
     {
      continue;
     }
@@ -2162,7 +2075,7 @@ namespace Medical_Profile
    if (emppn is object)
    {
     emppn.ContextMenuStrip = cm;
-    Controls.Add(emppn);
+    Pn.Controls.Add(emppn);
    }
 
    if (res_endpoints)
@@ -2172,7 +2085,7 @@ namespace Medical_Profile
     {
      if (k.Value.State != (int)Load_state.not_loaded)
      {
-      tbiu.Add(k.Key);
+      tbiu.Add(k.Value.header);
      }
     }
 
@@ -2186,57 +2099,19 @@ namespace Medical_Profile
 
     Update();
    }
-
-   Scsiz(Width);
   }
 
-  private async void Patientid_Leave(object sender, EventArgs e)
+  private void Sb_changed(object sender, EventArgs e)
   {
-   var claims = Gen_Claims();
-   //string fs = null;
-   // string fn = null;
-   aws_body.Clear();
-   if ((Editmenuitem.Text ?? "") == "End Edit")
-   {
-    return;
-   }
+   Pn.Top = -Sb.Value;
+   Vertical_Scroll_Position = Sb.Value;
+  }
 
-   if (Patientid.Text.Length == 0)
-   {
-    Patient.ReadOnly = false;
-   }
-
-   if (!Regex.IsMatch(Patientid.Text, "^[0-9 ]+$"))
-   {
-    return;
-   }
-
-   if (!rethit & !tabhit)
-   {
-    Patientid.Text = "";
-    return;
-   }
-
-   aws_body["patientid"] = Patientid.Text;
-   aws_body["departmentid"] = atdp[Department.SelectedItem.ToString()];
-   Reset_fields();
-   Text = "Medical Profile Card (" + installed_version + ")" + " - Loading Patient Information";
-   Update();
-   Application.UseWaitCursor = true;
-   L2_ret = await Aws.Get_Level2_aysnc(Mpck.Url, enck, Mpck.Salt, claims, aws_body);
-   Application.UseWaitCursor = false;
-   if (L2_ret.code != 200)
-   {
-    Interaction.MsgBox(L2_ret.message, MsgBoxStyle.OkOnly, "Medical Profile Card");
-    Reset_fields();
-    Patientid.Text = "";
-    Patientid.Select();
-    return;
-   }
-
-   Text = "Medical Profile Card (" + installed_version + ")";
-   Update();
-   Load_level2(L2_ret);
+  private void Pn_sizechanged(object sender, EventArgs e)
+  {
+   Sb.ValueChanged -= Sb_changed;
+   Application.DoEvents();
+   Sb.Maximum = Pn.Height;
   }
 
   private async void Patientid_Click(object sender, EventArgs e)
@@ -2283,7 +2158,7 @@ namespace Medical_Profile
    dsaves.SelectedIndexChanged -= Dsaves_SelectedIndexChanged;
    dsaves.SelectedItem = null;
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
-   Scsiz(Width, originaly);
+   Scsiz(Width, Originaly);
    Invalidate();
    Update();
   }
@@ -2324,53 +2199,9 @@ namespace Medical_Profile
    }
 
    Reset_fields();
-   Scsiz(Width, originaly);
+   Scsiz(Width, Originaly);
    Invalidate();
    Update();
-  }
-
-  private void Cnt_set(Control ctrl, bool enb, bool ro)
-  {
-   TextBox tb;
-   RichTextBox rb;
-   if (ctrl is TextBox)
-   {
-    tb = (TextBox)ctrl;
-    if (ro)
-    {
-     tb.ReadOnly = true;
-    }
-    else
-    {
-     tb.ReadOnly = false;
-    }
-
-    tb.BackColor = System.Drawing.Color.White;
-   }
-
-   if (ctrl is RichTextBox)
-   {
-    rb = (RichTextBox)ctrl;
-    if (ro)
-    {
-     rb.ReadOnly = true;
-    }
-    else
-    {
-     rb.ReadOnly = false;
-    }
-
-    rb.BackColor = System.Drawing.Color.White;
-   }
-
-   if (enb)
-   {
-    ctrl.Enabled = true;
-   }
-   else
-   {
-    ctrl.Enabled = false;
-   }
   }
 
   private void Patientid_KeyPress(object sender, KeyPressEventArgs e)
@@ -2401,107 +2232,161 @@ namespace Medical_Profile
    }
   }
 
-  private void ResetToolStripMenuItem_Click(object sender, EventArgs e)
+  private void Panels_delete()
   {
-   foreach (KeyValuePair<int, string> k in bl_used)
-    bl_available[k.Key] = k.Value;
-   bl_used.Clear();
-   foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
+   if (Pn != null)
    {
-    k.Value.State = (int)Load_state.not_loaded;
-    k.Value.Num = 0;
+    Pn.Controls.Clear();
    }
 
-   Properties.Settings.Default.endpoints = null;
-   foreach (KeyValuePair<int, string> s in bl_available)
+   if (Pe != null && Pe.Controls.Contains(Pn))
    {
-    Controls[s.Value].Visible = false;
-    Controls[s.Value].Controls[0].Text = string.Empty;
-    Controls[s.Value].Controls[1].Text = string.Empty;
+    Pe.Controls.Remove(Pn);
+   }
+   Controls.Remove(Pe);
+  }
+
+  private Rectangle Panels_create(int Petop)
+  {
+   GroupBox B3 = Grpblocks[3];
+   GroupBox Bl = Grpblocks[bl_used.Getlkey()];
+
+   int Pn_width = B3.Left + B3.Width/* + Xmargin*/;
+   int Pn_height = Bl.Top + Bl.Height/* + Ymargin*/;
+
+   Pn = new Panel()
+   {
+    Name = "PnPanel",
+    Location = new Point(0, 0),
+    Width = Pn_width,
+    Height = Pn_height,
+    Padding = new Padding(0, 0, 0, 0),
+    Margin = new Padding(0, 0, 0, 0),
+    //   BorderStyle = BorderStyle.FixedSingle,
+    AutoSize = false,
+    AutoScroll = false
+   };
+
+   foreach (KeyValuePair<int, string> s in bl_used)
+   {
+    Pn.Controls.Add(Grpblocks[s.Key]);
    }
 
-   Scsiz(Width, originaly);
-   Properties.Settings.Default.endpoints = new System.Collections.Specialized.StringCollection();
-   foreach (string s in Mpck.Blocklist)
-    Properties.Settings.Default.endpoints.Add(s);
-   Properties.Settings.Default.Save();
-   Endpoints_in_use = Properties.Settings.Default.endpoints;
-   if (L2_ret is object)
+   Pe = new Panel()
    {
-    foreach (string b in Endpoints_in_use)
-    {
-     if (L2_ret.blks.ContainsKey(b) && L2_ret.blks[b].Count > 0)
-     {
-      int bnum = bl_available.First().Key;
-      bl_used[bl_available.First().Key] = bl_available.First().Value;
-      bl_available.Remove(bl_available.First().Key);
-      Controls[gpn[bnum]].Visible = false;
-      Controls[gpn[bnum]].Controls[0].Text = b;
-      Controls[gpn[bnum]].Controls[0].Tag = b;
-      Controls[gpn[bnum]].Controls[0].Enabled = true;
-      bl_loaded[b].State = (int)Load_state.loaded;
-      bl_loaded[b].Num = bnum;
-      Controls[gpn[bnum]].Controls[1].Text = string.Join(Constants.vbCrLf, L2_ret.blks[b]);
-      Controls[gpn[bnum]].Controls[1].Enabled = true;
-      Ath_setcolor(bnum);
-      Controls[gpn[bnum]].Visible = true;
-      labgb[gph[bnum]] = b;
-      labgb[gpb[bnum]] = string.Join(Constants.vbCrLf, L2_ret.blks[b]);
-     }
-    }
-   }
+    Name = "PePanel",
+    Padding = new Padding(0, 0, 20, 0),
+    Location = new Point(0, Petop),
+    Width = Pn.Width/* += Xmargin*/,
+    Height = Pn.Height/* += Ymargin*/,
+    AutoSize = false,
+    AutoScroll = false
+   };
 
+   Pe.Controls.Add(Pn);
+
+   Controls.Add(Pe);
+
+   return Pe.Bounds;
+  }
+
+  private void Form1_Resizeend(object sender, EventArgs e)
+  {
+   Control cntrl = (Control)sender;
+   Form_Height = cntrl.Height;
    Scsiz(Width);
    Set_empgb();
   }
 
-  private void Scsiz(int Width, int Height = -1)
+  private void Scsiz(int Width, int DHeight = -1)
   {
-   GroupBox lb;
-   int br;
-   if (Height != -1)
+   int F_width = 0;
+   int F_height = 0;
+   int F_left = 0;
+   int F_top = 0;
+
+   if (DHeight == ClientSize.Height)
+    return;
+
+   Rectangle Form_Bounds = Bounds;
+   Rectangle Screen_Area = Screen.PrimaryScreen.WorkingArea;
+
+   Size Client_Size = ClientSize;
+   Size Fs = Size;
+
+   if (Pe != null)
    {
-    br = Height;
+    Panels_delete();
    }
-   else if (bl_used.Count == 0)
+
+   if (Form_size.IsEmpty)
    {
-    br = originaly;
+    Form_size = Fs;
+    Form_area = Client_Size;
+   }
+
+   W_delta = Fs.Width - Client_Size.Width;
+   H_delta = Fs.Height - Client_Size.Height;
+
+   if (DHeight != -1)
+    F_height = DHeight + H_delta;
+   else
+    F_height = Originaly + H_delta;
+
+   F_width = Fs.Width;
+   F_left = Form_Bounds.X;
+   F_top = Form_Bounds.Y;
+   Vsm = false;
+
+   if (bl_used.Count > 0)
+   {
+    Rectangle pb = Panels_create(Ystart + 2 * Ymargin);
+
+    F_height = Pe.Top + Pe.Height + H_delta + 2 * Ymargin;
+   }
+
+   if (F_height == Form_Height)
+    Form_Height = -1;
+
+   if ((Form_Height != -1) && (F_height > Form_Height))
+   {
+    F_top = 20;
+    F_height = Form_Height;
+    Vsm = true;
+   }
+   else if (F_height > Screen_Area.Height)
+   {
+    F_top = 20;
+    Form_Height = Screen_Area.Height;
+    F_height = Form_Height;
+    Vsm = true;
    }
    else
    {
-    lb = (GroupBox)Controls[bl_used.Getlval()];
-    br = lb.Location.Y + lb.Height + 76;
-    if (bl_used.Count > 3)
-    {
-     if (Top + br > Screen_height)
-     {
-      dnh = false;
-      Wanted_hgt = br;
-      lb = (GroupBox)Controls[bl_used[bl_used.Count - 3]];
-      br = lb.Location.Y + lb.Height + 76;
-     }
-     else
-     {
-      dnh = true;
-      Wanted_hgt = 0;
-     }
-    }
+    F_top = ((Screen_Area.Height / 2) - (F_height / 2)) / 2;
+    Vsm = false;
+    Vertical_Scroll_Position = 0;
    }
 
-   Size = new Size(Width, br);
+   F_left = (Screen_Area.Width / 2) - (Fs.Width / 2);
+
+   StartPosition = FormStartPosition.Manual;
+
+   Location = new Point(F_left, F_top);
+
+   Set_Size(Fs.Width, F_height);
+
    Update();
   }
 
   private void Previewmenuitem_Click(object sender, EventArgs e)
   {
-   var pfrm = new Form3();
    int pccnt;
    int prcnt;
    PictureBox pb;
    var gblabels = new[] { "First Label", "Second Label", "Third Label", "Fourth Label", "Fifth Label", "Sixth Label" };
    Panel pnl;
-   ContextMenuStrip Cms = null;
-   ToolStripMenuItem Tsi = null;
+
    using (Form fpr = new Form3())
    {
     using (var tbl = new TableLayoutPanel())
@@ -2516,7 +2401,7 @@ namespace Medical_Profile
      {
       return;
      }
-
+     tbl.Name = "Panel_Table";
      pccnt = Pnglablist.Count < 2 ? 1 : 2;
      prcnt = (Pnglablist.Count + 1) / pccnt;
      tbl.RowCount = prcnt;
@@ -2525,23 +2410,24 @@ namespace Medical_Profile
      tbl.Height = 337 * prcnt;
      fpr.Width = tbl.Width;
      fpr.Height = tbl.Height;
-     for (int i = 0, loopTo = prcnt - 1; i <= loopTo; i += 1)
+     for (int i = 0; i <= prcnt - 1; i++)
      {
-      for (int j = 0, loopTo1 = pccnt - 1; j <= loopTo1; j += 1)
+      for (int j = 0; j <= pccnt - 1; j++)
       {
        int ind = i * pccnt + j;
        if (ind > Pnglablist.Count - 1)
        {
         break;
        }
-
        pnl = new Panel();
+       pnl.Name = "Panel";
        pb = new PictureBox()
        {
         Width = 464,
         Height = 277,
         Left = 15,
         Top = 15,
+        Name = "Picture",
         Anchor = AnchorStyles.None
        };
        using (var MS = new MemoryStream(Pnglablist[i * pccnt + j]))
@@ -2554,6 +2440,7 @@ namespace Medical_Profile
        pnl.Width = 504;
        pnl.Height = 337;
        var lab = new System.Windows.Forms.Label() { Text = gblabels[ind] };
+       lab.Name = "Label";
        pnl.Controls.Add(lab);
        pnl.Controls[0].Left = 20;
        pnl.Controls[0].Top = 20;
@@ -2561,15 +2448,6 @@ namespace Medical_Profile
        pb.CenterControl();
        pnl.Controls[1].Left = 20;
        pnl.Controls[1].Top = 45;
-       Cms = new ContextMenuStrip();
-       Tsi = new ToolStripMenuItem()
-       {
-        Text = "Print",
-        Name = gblabels[ind]
-       };
-       //  Tsi.Click += pfrm. My.MyProject.Forms.Form3.Print_Panel;
-       Cms.Items.Add(Tsi);
-       pnl.ContextMenuStrip = Cms;
        tbl.Controls.Add(pnl, j, i);
       }
      }
@@ -2654,9 +2532,9 @@ namespace Medical_Profile
 
    foreach (KeyValuePair<int, string> k in bl_used)
    {
-    TextBox tb = (TextBox)Controls[k.Value].Controls[0];
+    TextBox tb = (TextBox)Grpblocks[k.Key].Controls[0];
     tb.ReadOnly = bset;
-    RichTextBox rb = (RichTextBox)Controls[k.Value].Controls[1];
+    RichTextBox rb = (RichTextBox)Grpblocks[k.Key].Controls[1];
     rb.ReadOnly = bset;
     Refresh();
    }
@@ -2667,22 +2545,22 @@ namespace Medical_Profile
    int bn;
    if (bl_used.Count == blocks_number)
    {
-    Interaction.MsgBox("Unable to Notes Page", MsgBoxStyle.Information, "All are in use");
+    MessageBox.Show("Unable to Notes Page", "All are in use", MessageBoxButtons.OK, MessageBoxIcon.Information);
    }
    else
    {
     bn = bl_available.First().Key;
     bl_available.Remove(bn);
     bl_used[bn] = gpn[bn];
-    Controls[gpn[bn]].Controls[0].Text = string.Empty;
-    Controls[gpn[bn]].Controls[1].Text = string.Empty;
-    Controls[gpn[bn]].Controls[0].Enabled = true;
-    Controls[gpn[bn]].Controls[1].Enabled = true;
-    Controls[gpn[bn]].Controls[0].Text = "Notes";
-    Controls[gpn[bn]].Visible = true;
-    Set_ro(Controls[gpn[bn]].Controls[0]);
-    Set_ro(Controls[gpn[bn]].Controls[1]);
-    labgb[gph[bn]] = Controls[gpn[bn]].Controls[0].Text;
+    Grpblocks[bn].Controls[0].Text = string.Empty;
+    Grpblocks[bn].Controls[1].Text = string.Empty;
+    Grpblocks[bn].Controls[0].Enabled = true;
+    Grpblocks[bn].Controls[1].Enabled = true;
+    Grpblocks[bn].Controls[0].Text = "Notes";
+    Grpblocks[bn].Visible = true;
+    Set_ro(Grpblocks[bn].Controls[0]);
+    Set_ro(Grpblocks[bn].Controls[1]);
+    labgb[gph[bn]] = Grpblocks[bn].Controls[0].Text;
     labgb[gpb[bn]] = string.Empty;
     Set_empgb();
     Scsiz(Width);
@@ -2708,6 +2586,16 @@ namespace Medical_Profile
 
   private void Printmenuitem_Click(object sender, EventArgs e)
   {
+   Preview = false;
+
+   if (printer is ILabelWriterPrinter)
+   {
+    pjob = (PrintJob)printer.CreatePrintJob(lprintparams);
+   }
+   else
+   {
+    pjob = (PrintJob)printer.CreatePrintJob(printParams);
+   }
    Generate_Labels();
   }
 
@@ -2744,19 +2632,6 @@ namespace Medical_Profile
     Data_altered = true;
    }
   }
-
-  private void Practice_KeyPress(object sender, KeyPressEventArgs e)
-  {
-   if (!((Editmenuitem.Text ?? "") == "End Edit"))
-   {
-    e.Handled = true;
-   }
-   else
-   {
-    Data_altered = true;
-   }
-  }
-
   private void Department_KeyPress(object sender, KeyPressEventArgs e)
   {
    if (!((Editmenuitem.Text ?? "") == "End Edit"))
@@ -2821,8 +2696,6 @@ namespace Medical_Profile
   private async void Patientid_Validated(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
-   //  string fs = null;
-   //  string fn = null;
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
     return;
@@ -2866,7 +2739,7 @@ namespace Medical_Profile
     Application.UseWaitCursor = false;
     if (L2_ret.code != 200)
     {
-     Interaction.MsgBox(L2_ret.message, MsgBoxStyle.OkOnly, "Medical Profile Card");
+     MessageBox.Show(L2_ret.message, "Medical Profile Card");
      Reset_fields();
      pidep.SetError(Patientid, "Patient not found");
      tabhit = false;
@@ -2892,8 +2765,6 @@ namespace Medical_Profile
   private async void Patient_Validated(object sender, EventArgs e)
   {
    var claims = Gen_Claims();
-   //  string fs = null;
-   //  string fn = null;
    if ((Editmenuitem.Text ?? "") == "End Edit")
    {
     return;
@@ -2932,7 +2803,7 @@ namespace Medical_Profile
     Application.UseWaitCursor = false;
     if (L2_ret.code != 200)
     {
-     Interaction.MsgBox(L2_ret.message, MsgBoxStyle.OkOnly, "Medical Profile Card");
+     MessageBox.Show(L2_ret.message, "Medical Profile Card");
      Reset_fields();
      patep.SetError(Patient, "Patient not found");
      tabhit = false;
@@ -3009,12 +2880,7 @@ namespace Medical_Profile
     Patient.Select(0, Patient.Text.Length);
     patep.SetError(Patient, "A patient name must be either <first> <last> or <last>,<first>");
    }
-  }
-
-  private void Form1_Closing(object sender, CancelEventArgs e)
-  {
-   e.Cancel = false;
-  }
+  }  
 
   private void Rtbbox_enter(object sender, EventArgs e)
   {
@@ -3079,7 +2945,7 @@ namespace Medical_Profile
    dsaves.SelectedIndexChanged -= Dsaves_SelectedIndexChanged;
    dsaves.SelectedItem = null;
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
-   Scsiz(Width, originaly);
+   Scsiz(Width, Originaly);
    Invalidate();
    Update();
   }
@@ -3123,7 +2989,7 @@ namespace Medical_Profile
    rethit = false;
    tabhit = false;
    Reset_fields();
-   Scsiz(Width, originaly);
+   Scsiz(Width, Originaly);
    Invalidate();
    Update();
   }
@@ -3174,12 +3040,8 @@ namespace Medical_Profile
    string jse;
    Dsave_return dr;
 
-   // Dim dsi As KeyValuePair(Of String, Dsave) = Nothing
-   // Dim ds As Dsave = Nothing
-
    if (saved_type)
    {
-    // Dsi = dsaves.SelectedItem
     Ds = Dsi.Value;
     if (string.IsNullOrEmpty(Patient.Text))
     {
@@ -3236,8 +3098,8 @@ namespace Medical_Profile
     {
      var withBlock = Sb;
      withBlock.num = s.Key;
-     withBlock.header = Controls[s.Value].Controls[0].Text;
-     withBlock.body = Controls[s.Value].Controls[1].Text;
+     withBlock.header = Grpblocks[s.Key].Controls[0].Text;
+     withBlock.body = Grpblocks[s.Key].Controls[1].Text;
     }
 
     Sblk.Blk_list.Add(Sb);
@@ -3245,26 +3107,26 @@ namespace Medical_Profile
 
    aws_body.Clear();
    js = JsonConvert.SerializeObject(Sblk, Formatting.Indented);
-   aws_body["skey"] = Enc.Enc256.Encrypt(Sblk.Patient, Enc.Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+   aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
    var switchExpr = save_ver;
    switch (switchExpr)
    {
     case 1:
      {
-      jse = Enc.Enc256.Encrypt(js, Enc.Enc256.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
-      aws_body["skey"] = Enc.Enc256.Encrypt(Sblk.Patient, Enc.Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
+      jse = Enc256.Encrypt(js, Enc256.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
+      aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
       break;
      }
 
     default:
      {
-      jse = Enc.Enc256.Encrypt(js, Enc.Enc256.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
-      aws_body["skey"] = Enc.Enc256.Encrypt(Sblk.Patient, Enc.Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+      jse = Enc256.Encrypt(js, Enc256.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
+      aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
       break;
      }
    }
 
-   aws_body["ukey"] = Enc.Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
+   aws_body["ukey"] = Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
    if (saved_type)
    {
     if (string.IsNullOrEmpty(Ds.lwtim))
@@ -3305,7 +3167,7 @@ namespace Medical_Profile
    Dsave_return Dr;
    Reset_fields();
    aws_body.Clear();
-   aws_body["ukey"] = Enc.Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
+   aws_body["ukey"] = Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
    aws_body["wrtim"] = dsv.wrtim;
    Application.UseWaitCursor = true;
    Dr = await Aws.Pat_delete_aysnc(Mpck.Url, enck, Mpck.Salt, claims, aws_body);
@@ -3317,29 +3179,6 @@ namespace Medical_Profile
    Patientid.Focus();
   }
 
-  private void WireAllEvents(object obj)
-  {
-   var parameterTypes = new[] { typeof(object), typeof(EventArgs) };
-   var Events = obj.GetType().GetEvents();
-   foreach (var ev in Events)
-   {
-    if (ev.Name.StartsWith("Format"))
-    {
-     continue;
-    }
-
-    if (ev.Name.StartsWith("Mouse"))
-    {
-     continue;
-    }
-
-    var handler = new DynamicMethod("", null, parameterTypes, typeof(Form1));
-    var ilgen = handler.GetILGenerator();
-    ilgen.EmitWriteLine("Event Name: " + ev.Name);
-    ilgen.Emit(OpCodes.Ret);
-    ev.AddEventHandler(obj, handler.CreateDelegate(ev.EventHandlerType));
-   }
-  }
 
   private async void Dsaves_SelectedIndexChanged(object sender, EventArgs e)
   {
@@ -3394,7 +3233,7 @@ namespace Medical_Profile
    inpat = false;
    inpid = false;
    aws_body.Clear();
-   aws_body["ukey"] = Enc.Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
+   aws_body["ukey"] = Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
    aws_body["skey"] = dsv.Skey;
    aws_body["wrtim"] = dsv.wrtim;
    Application.UseWaitCursor = true;
@@ -3405,15 +3244,15 @@ namespace Medical_Profile
     var switchExpr = dsv.vers;
     switch (switchExpr)
     {
-     case var @case when @case == Conversions.ToString(1):
+     case "1":
       {
-       js = Enc.Enc256.Decrypt(Dvr.Dsave_value, Enc.Enc256.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
+       js = Enc256.Decrypt(Dvr.Dsave_value, Enc256.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
        break;
       }
 
      default:
       {
-       js = Enc.Enc256.Decrypt(Dvr.Dsave_value, Enc.Enc256.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
+       js = Enc256.Decrypt(Dvr.Dsave_value, Enc256.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
        break;
       }
     }
@@ -3451,36 +3290,16 @@ namespace Medical_Profile
    dept_tbox.SelectionStart = 0;
   }
 
-  private void Printers_MouseEnter(object sender, EventArgs e)
-  {
-   Printers.SelectionStart = 0;
-  }
-
-  private void dsaves_MouseEnter(object sender, EventArgs e)
-  {
-   dsaves.SelectionStart = 0;
-  }
-
-  private void dsaves_Enter(object sender, EventArgs e)
-  {
-   dsaves.SelectionStart = 0;
-  }
-
   private void Cb_Enter(object sender, EventArgs e)
   {
    ComboBox Cb = (ComboBox)sender;
    Cb.SelectionStart = Cb.Text.Length;
-   // Cb.SelectionLength = 0
   }
 
   private void Cb_DropDown(object sender, EventArgs e)
   {
    ComboBox Cb = (ComboBox)sender;
    Cb.SelectionLength = 0;
-   if ((Cb.Name ?? "") == "dsaves")
-   {
-    Console.WriteLine("dsaves selected[" + dsaves.SelectedText + "]");
-   }
 
    string St = Cb.Text;
   }
@@ -3492,6 +3311,7 @@ namespace Medical_Profile
    Cb.SelectionStart = Cb.SelectionLength;
    var G = e.Graphics;
    var R = e.Bounds;
+   var S = e.State;
    var bc = System.Drawing.Color.FromArgb(225, 227, 225);
    if (e.Index < 0)
    {
@@ -3508,36 +3328,13 @@ namespace Medical_Profile
    }
 
    e.Graphics.FillRectangle(new SolidBrush(bc), R);
-   if (Conversions.ToBoolean(e.State & DrawItemState.Selected))
-   {
-    StringBuilder stb = new StringBuilder();
-    stb.Append("dsaves DI 1 State[");
-    stb.Append(e.State.ToString());
-    stb.Append("] Rect[");
-    stb.Append(R.Width.ToString());
-    stb.Append(",");
-    stb.Append(R.Height.ToString());
-    stb.Append("] string[");
-    stb.Append(str);
-    stb.Append("]");
 
-    Console.WriteLine(stb.ToString());
+   if ((S & DrawItemState.Selected) != 0)
+   {
     e.Graphics.DrawString(str, scb_font, Brushes.Black, R);
    }
    else
    {
-    StringBuilder stb = new StringBuilder();
-    stb.Append("dsaves DI 2 State[");
-    stb.Append(e.State.ToString());
-    stb.Append("] Rect[");
-    stb.Append(R.Width.ToString());
-    stb.Append(",");
-    stb.Append(R.Height.ToString());
-    stb.Append("] string[");
-    stb.Append(str);
-    stb.Append("]");
-
-    Console.WriteLine(stb.ToString());
     e.Graphics.DrawString(str, scr_font, Brushes.Black, R);
    }
 
@@ -3581,11 +3378,6 @@ namespace Medical_Profile
   {
    ComboBox Cb = (ComboBox)sender;
    Cb.SelectionStart = Cb.Text.Length;
-  }
-
-  private void dest_Enter(object sender, EventArgs e)
-  {
-   Interaction.MsgBox("Dest", MsgBoxStyle.OkOnly, "Dest Enter");
   }
  }
 }

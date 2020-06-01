@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using Microsoft.VisualBasic.CompilerServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Medical_Profile
 {
@@ -13,14 +13,14 @@ namespace Medical_Profile
   public int Stop_redraw(int target)
   {
    int arglParam = 0;
-   int ret = SendMessage(target, WM_SETREDRAW, Conversions.ToInteger(false), ref arglParam);
+   int ret = SendMessage(target, WM_SETREDRAW, Convert.ToInt32(false), ref arglParam);
    return ret;
   }
 
   public int start_redraw(int target)
   {
    int arglParam = 0;
-   int ret = SendMessage(target, WM_SETREDRAW, Conversions.ToInteger(true), ref arglParam);
+   int ret = SendMessage(target, WM_SETREDRAW, Convert.ToInt32(true), ref arglParam);
    return ret;
   }
  }

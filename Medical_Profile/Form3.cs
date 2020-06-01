@@ -6,7 +6,7 @@ using global::System.Windows.Forms;
 
 namespace Medical_Profile
 {
- public partial class Form3
+ public partial class Form3 : Form
  {
   public Form3()
   {
@@ -22,11 +22,11 @@ namespace Medical_Profile
   private Queue<Panel> Pnlq = null;
   private TableLayoutPanel Tbl = null;
 
-  private void BtnPrint_Click(object sender, EventArgs e)
-  {
-   var pf = new PrintForm(this);
-   pf.Print(true, PrintForm.PrintMode_ENUM.FitToPage);
-  }
+  //private void BtnPrint_Click(object sender, EventArgs e)
+  //{
+  // var pf = new PrintForm(this);
+  // pf.Print(true, PrintForm.PrintMode_ENUM.FitToPage);
+  //}
 
   private void ClosePreviewToolStripMenuItem_Click(object sender, EventArgs e)
   {
@@ -87,13 +87,16 @@ namespace Medical_Profile
    var Pnlw = default(int);
    Tbl = (TableLayoutPanel)Controls[1];
    Pnlq = new Queue<Panel>();
-   for (int i = 0, loopTo = Tbl.RowCount - 1; i <= loopTo; i += 1)
+   for (int i = 0; i <= Tbl.RowCount - 1; i++)
    {
-    for (int j = 0, loopTo1 = Tbl.ColumnCount - 1; j <= loopTo1; j += 1)
+    for (int j = 0; j <= Tbl.ColumnCount - 1; j++)
     {
      p = (Panel)Tbl.GetControlFromPosition(j, i);
-     Pnlw = p.Width;
-     Pnlq.Enqueue(p);
+     if (p != null)
+     {
+      Pnlw = p.Width;
+      Pnlq.Enqueue(p);
+     }
     }
    }
 
@@ -130,6 +133,32 @@ namespace Medical_Profile
    else
    {
     e.HasMorePages = false;
+   }
+  }
+
+  private void Form3_Load(object sender, EventArgs e)
+  {
+   Panel Pnl = null; ;
+   ContextMenuStrip Cms = null;
+   ToolStripMenuItem Tsi = null;
+
+   var gblabels = new[] { "First Label", "Second Label", "Third Label", "Fourth Label", "Fifth Label", "Sixth Label", "Seventh Label", "Eigth Label", "Ninth Label" };
+
+   TableLayoutPanel Tbl = (TableLayoutPanel)Controls["Panel_Table"];
+
+   for (int i = 0; i <= Tbl.Controls.Count - 1; i++)
+   {
+    Pnl = (Panel)Tbl.Controls[i];
+    Cms = new ContextMenuStrip();
+    Tsi = new ToolStripMenuItem()
+    {
+     Text = "Print Label",
+     Name = gblabels[i]
+    };
+
+    Tsi.Click += Print_Panel;
+    Cms.Items.Add(Tsi);
+    Pnl.ContextMenuStrip = Cms;
    }
   }
  }

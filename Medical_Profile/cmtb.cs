@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Windows.Forms;
 using global::System.Windows.Forms.Design;
-using Microsoft.VisualBasic.CompilerServices;
+//using Microsoft.VisualBasic.CompilerServices;
 
 namespace Medical_Profile
 {
@@ -38,7 +38,7 @@ namespace Medical_Profile
   {
    get
    {
-    return Conversions.ToInteger(TSnumudControl.Value);
+    return Convert.ToInt32(TSnumudControl.Value);
    }
 
    set
@@ -51,7 +51,7 @@ namespace Medical_Profile
   {
    get
    {
-    return Conversions.ToInteger(TSnumudControl.Minimum);
+    return Convert.ToInt32(TSnumudControl.Minimum);
    }
 
    set
@@ -74,7 +74,7 @@ namespace Medical_Profile
   {
    get
    {
-    return Conversions.ToInteger(TSnumudControl.Maximum);
+    return Convert.ToInt32(TSnumudControl.Maximum);
    }
 
    set

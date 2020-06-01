@@ -44,6 +44,7 @@ namespace Medical_Profile
  public class Sblock
  {
   public int num;
+  public int? state = null;
   public string header;
   public string body;
  }

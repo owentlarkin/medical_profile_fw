@@ -2,8 +2,6 @@
 using global::System.Drawing;
 using System.Runtime.InteropServices;
 using global::System.Windows.Forms;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace Medical_Profile
 {
@@ -102,7 +100,7 @@ namespace Medical_Profile
     {
      ppvPreview.Document = pdcNew;
      ppvPreview.FindForm().WindowState = FormWindowState.Maximized;
-     if (Information.IsNothing(Owner))
+     if (Owner==null)
      {
       ppvPreview.ShowDialog();
      }
@@ -131,12 +129,12 @@ namespace Medical_Profile
        if (mbmpScreenshot.Width / (double)mbmpScreenshot.Height < e.MarginBounds.Width / (double)e.MarginBounds.Height)
        {
         // fit height
-        rctTarget = new Rectangle(e.MarginBounds.X, e.MarginBounds.Y, Conversions.ToInteger(mbmpScreenshot.Width * e.MarginBounds.Height / (double)mbmpScreenshot.Height), e.MarginBounds.Height);
+        rctTarget = new Rectangle(e.MarginBounds.X, e.MarginBounds.Y, Convert.ToInt32(mbmpScreenshot.Width * e.MarginBounds.Height / (double)mbmpScreenshot.Height), e.MarginBounds.Height);
        }
        else
        {
         // fit width
-        rctTarget = new Rectangle(e.MarginBounds.X, e.MarginBounds.Y, e.MarginBounds.Width, Conversions.ToInteger(mbmpScreenshot.Height * e.MarginBounds.Width / (double)mbmpScreenshot.Width));
+        rctTarget = new Rectangle(e.MarginBounds.X, e.MarginBounds.Y, e.MarginBounds.Width, Convert.ToInt32(mbmpScreenshot.Height * e.MarginBounds.Width / (double)mbmpScreenshot.Width));
        }
        // g.DrawRectangle(Pens.Blue, rctTarget) 'DEBUG: use this line to check target rectangle
        objImageToPrint.DrawImage(mbmpScreenshot, rctTarget); // default
