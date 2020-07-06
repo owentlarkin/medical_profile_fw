@@ -18,6 +18,7 @@ using global::Microsoft.Win32;
 using global::Newtonsoft.Json;
 using System.Text;
 using Enc;
+using System.Threading.Tasks;
 
 namespace Medical_Profile
 {
@@ -152,22 +153,39 @@ namespace Medical_Profile
    }
   }
 
-  private string Handle_file(string eval)
+  private string  Handle_file(string eval)
   {
    MPC_type mty = null;
    string rjson = Enc256.Decrypt(eval, enck, 17531);
-   if (rjson == default)
+   if (string.IsNullOrEmpty(rjson))
    {
     return "1";
    }
 
    mty = JsonConvert.DeserializeObject<MPC_type>(rjson);
-   if (mty.Akey != default)
+
+   if (mty == null)
+    return "1";
+
+   if (string.IsNullOrEmpty(mty.F1))
+    return "1";
+
+   rjson = Enc256.Decrypt(mty.F1, enck, mty.Akey);
+
+   if (string.IsNullOrEmpty(rjson))
+    return "1";
+
+   Mpck = JsonConvert.DeserializeObject<MPC_key>(rjson);
+
+   if (Mpck == null)
+    return "1"; 
+
+   if (!string.IsNullOrEmpty(mty.Akey))
    {
     drive_label = mty.Akey;
    }
 
-   if (mty.F1 != default)
+   if (!string.IsNullOrEmpty(mty.F1))
    {
     rjson = Enc256.Decrypt(mty.F1, enck, mty.Akey);
     if (rjson is null)
@@ -216,13 +234,13 @@ namespace Medical_Profile
     withBlock.Dlab = mpu.Disk_Label;
     withBlock.Secret = mpu.Secret1;
     withBlock.Iterations = mpu.Iterations;
-    withBlock.Blocks = mpu.Blocks;
+  //  withBlock.Blocks = mpu.Blocks;
     withBlock.Blocklist = mpu.Blocklist;
     withBlock.K1 = mpu.K1;
-    withBlock.Labels = mpu.Labels;
-    withBlock.Lines = mpu.Lines;
+   // withBlock.Labels = mpu.Labels;
+ //   withBlock.Lines = mpu.Lines;
     withBlock.Minimum_blocks = mpu.Minimum_blocks;
-    withBlock.Points = mpu.Points;
+  //  withBlock.Points = mpu.Points;
     withBlock.Sec_visible = Convert.ToBoolean(mpu.Sec_visible);
     withBlock.Sptitle = mpu.Sptitle;
     withBlock.Version = mpu.Version;
@@ -973,7 +991,55 @@ namespace Medical_Profile
    obox.Controls.Add(rbox);
    return obox;
   }
-  private async void Form1_LoadAsync(object sender, EventArgs e)
+  public async  Task<string> Get_Eval(MPC_key Mk)
+  {
+    DateTimeOffset nw = new DateTimeOffset();
+
+   var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile",true);
+   string salt;
+   string New_Eval = null;
+   Ckup_Return mcd;
+   var aws_body = new Dictionary<string, object>();
+
+   nw = DateTime.UtcNow;
+   nw = nw.AddYears(1);
+   IDateTimeProvider provider = new UtcDateTimeProvider();
+
+   string Cid = key.GetValue("Cid", null).ToString();
+
+   if (string.IsNullOrEmpty(Cid))
+    return null;
+
+   string Cid_encrypted = Enc256.Encrypt(Cid, Enc256.Scramble(enck));
+   salt = Enc256.Getsalt(Cid_encrypted);
+
+   var payload = new Dictionary<string, object>() { { "aud", "http://medicalprofilecard.com" }, { "exp", nw.ToUnixTimeSeconds() }, { "update", Cid_encrypted } };
+
+   payload["cid"] = Cid;
+   payload["User_Name"] = Environment.UserName;
+   payload["Machine_Name"] = Environment.MachineName;
+
+
+   aws_body["vector_code"] = "4162";
+   Application.UseWaitCursor = true;
+
+  // Mk.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
+
+   mcd = await Aws.Update_aysnc(Mk.Url, enck, salt, payload, aws_body);
+   Application.UseWaitCursor = false;
+
+   if (!string.IsNullOrEmpty(mcd.eval))
+   {
+    New_Eval = Enc256.Decrypt(mcd.eval, Enc256.Scramble(enck), 18926);
+    if (!string.IsNullOrEmpty(New_Eval))
+    {
+     key.SetValue("eval", New_Eval);
+    }
+   }
+   return New_Eval;
+  }
+
+  public async void Form1_LoadAsync(object sender, EventArgs e)
   {
    ContextMenuStrip cm;
 
@@ -1002,22 +1068,22 @@ namespace Medical_Profile
 
    if (!testmode)
    {
-    eval_encoded = key.GetValue("eval", null).ToString();
+    eval_encoded = key.GetValue("eval", null)?.ToString();
     if (eval_encoded is object)
-    {
+    {      
      file_access = true;
     }
 
     if (!file_access)
     {
-     drive_label_encoded = key.GetValue("Label", null).ToString();
+     drive_label_encoded = key.GetValue("Label", null)?.ToString();
      if (drive_label_encoded is null)
      {
       using (Form f4 = new Formaik(cv))
       {
        f4.ShowDialog();
-       eval_encoded = key.GetValue("eval", null).ToString(); ;
-       if (eval_encoded != default)
+       eval_encoded = key.GetValue("eval", null)?.ToString(); ;
+       if (string.IsNullOrEmpty(eval_encoded))
        {
         file_access = true;
        }
@@ -1093,11 +1159,11 @@ namespace Medical_Profile
    }
 
    minimum_blocks = Convert.ToInt32(Mpck.Minimum_blocks);
-   blocks_number = Convert.ToInt32(Mpck.Blocks);
+//   blocks_number = Convert.ToInt32(Mpck.Blocks);
    blocks_number = 9;
    int BPR = 3;
-   labels_number = Convert.ToInt32(Mpck.Labels);
-   lines_number = Convert.ToInt32(Mpck.Lines);
+//   labels_number = Convert.ToInt32(Mpck.Labels);
+//   lines_number = Convert.ToInt32(Mpck.Lines);
    lines_number = 10;
    labels_number = 5;
 
@@ -1205,6 +1271,9 @@ namespace Medical_Profile
    aws_body["ukey"] = Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
    Text = "Medical Profile Card (" + installed_version + ")" + " - Loading Practice Information";
    Update();
+
+  // Mpck.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
+
    if (run_timer)
    {
     Ettb.Text = start_timer(SW);
@@ -1216,15 +1285,34 @@ namespace Medical_Profile
    if (L1_ret.code != 200)
    {
     MessageBox.Show("Returned Code(" + L1_ret.code.ToString() + ") - " + L1_ret.message, "Error getting practice information", MessageBoxButtons.OK);
-    Application.Exit();
+    System.Windows.Forms.Application.Exit();
+    Application.DoEvents();
+    Close();
    }
    
    Text = "Medical Profile Card (" + installed_version + ")";
    Update();
-   if (L1_ret.Prc is null)
+
+   if (!string.IsNullOrEmpty(L1_ret.Eval))
+   {
+    string New_Eval = Enc256.Decrypt(L1_ret.Eval, Enc256.Scramble(enck), 18926);
+    if (!string.IsNullOrEmpty(New_Eval))
+    {
+     if (Handle_file(New_Eval) == "0")
+     {
+      var Knv = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
+      Knv.SetValue("eval", New_Eval);
+      Knv.Close();
+     }
+    }
+   }
+
+   if (L1_ret?.Prc is null)
    {
     MessageBox.Show("Unable to get practice information", "Error in information returned");
-    Application.Exit();
+    System.Windows.Forms.Application.Exit();
+    Application.DoEvents();
+    Close();
    }
 
    Dstate = Data_state.Edit_mode;
@@ -1252,7 +1340,13 @@ namespace Medical_Profile
   public Dictionary<string, object> Gen_Claims()
   {
    var nw = DateTimeOffset.UtcNow;
+
+   #if DEBUG
+   var ew = nw.AddYears(1);
+   #else
    var ew = nw.AddMinutes(5);
+   #endif
+
    IDateTimeProvider provider = new UtcDateTimeProvider();
    var payload = new Dictionary<string, object>() { { "aud", "http: //medicalprofilecard.com" }, { "exp", ew.ToUnixTimeSeconds() }, { "iss", Mpck.Email }, { "label", drive_label }, { "key", Mpck.Mkey } };
    if (file_access)
@@ -1266,8 +1360,8 @@ namespace Medical_Profile
     payload["f1t"] = ftime;
    }
 
-   payload["un"] = Environment.UserName;
-   payload["mn"] = Environment.MachineName;
+   payload["User_Name"] = Environment.UserName;
+   payload["Machine_Name"] = Environment.MachineName;
 
    return payload;
   }

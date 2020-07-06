@@ -29,24 +29,36 @@ namespace Medical_Profile
   private void Formaik_Load(object sender, EventArgs e)
   {
   }
-
+  
   private async void Register_Click(object sender, EventArgs e)
   {
    var nw = DateTimeOffset.UtcNow;
-   var ew = nw.AddMinutes(5);
-   // Dim ew As DateTimeOffset = nw.AddYears(1)
+   var ew = nw.AddYears(1);
+   //var ew = nw.AddMinutes(5);
+   //Dim ew As DateTimeOffset = nw.AddYears(1)
    IDateTimeProvider provider = new UtcDateTimeProvider();
    string salt;
+   string Cid = null;
    string mtyenc;
    Register_Return mcd;
    var aws_body = new Dictionary<string, object>();
    var Rkey = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
+
+   Cid = Rkey.GetValue("Cid",null).ToString();
+
    if (Key.Text is object && !((Key.Text ?? "") == (string.Empty ?? "")))
    {
     key_encrypted = Enc256.Encrypt(Key.Text, Enc256.Scramble(keys));
     salt = Enc256.Getsalt(key_encrypted);
+
     var payload = new Dictionary<string, object>() { { "aud", "http://medicalprofilecard.com" }, { "exp", ew.ToUnixTimeSeconds() }, { "register", key_encrypted } };
+
+    payload["cid"] = Cid;
+    payload["User_Name"] = Environment.UserName;
+    payload["Machine_Name"] = Environment.MachineName;
+
     aws_body["vector_code"] = "4152";
+
     Application.UseWaitCursor = true;
     mcd = await Aws.Register_aysnc(installation_url, keys, salt, payload, aws_body);
     Application.UseWaitCursor = false;

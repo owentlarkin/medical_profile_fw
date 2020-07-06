@@ -34,6 +34,7 @@ namespace Medical_Profile
   public string message = "";
   public bool Preview_practice = false;
   public Practiceinfo_return Prc;
+  public string Eval;
   public Dept_Return[] Dpt;
   public Provider_return[] Prv;
   public string[] Block_names;
@@ -68,6 +69,13 @@ namespace Medical_Profile
   public string eval;
  }
 
+ public class Ckup_Return
+ {
+  public Exception ex;
+  public int code = 200;
+  public string message;
+  public string eval;
+ }
  public class Dsave_value_return
  {
   public Exception ex;

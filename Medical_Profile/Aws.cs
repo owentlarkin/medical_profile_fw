@@ -5,6 +5,7 @@ using Flurl.Http;
 using Newtonsoft.Json;
 using System.Windows.Forms;
 using Enc;
+using System;
 
 namespace Medical_Profile
 {
@@ -44,8 +45,9 @@ namespace Medical_Profile
 
    return l1;
   }
+  
 
-  public async static Task<Dsave_return> Save_exception(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+   public async static Task<Dsave_return> Save_exception(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
   {
    var Dr = new Dsave_return();
    Mret M1 = null;
@@ -261,6 +263,45 @@ namespace Medical_Profile
    }
 
    return Rv;
+  }
+
+  public static async Task<Mret> Get_Data(string Base,string Token,Dictionary<string,object> Bpl)
+  {
+   Mret m1 = null;
+    using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+    {
+     var task = Task.Run(() => cli.Request().PostJsonAsync(Bpl));
+     task.Wait();
+     var rsp = task.Result;
+     var cnt = rsp.Content;
+
+     string s = await cnt.ReadAsStringAsync();
+
+     m1 = JsonConvert.DeserializeObject<Mret>(s);
+    }
+   return m1;
+  }
+  public async static Task<Ckup_Return> Update_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+  {
+   Ckup_Return Uv = new Ckup_Return();
+   Mret m1 = null;
+   var bpl = new Dictionary<string, object>(bp);
+   bpl["Call_vector"] = 4162;
+   string Token = Enc256.Encode(Key, Salt, Claims);
+
+   m1 = await Get_Data(Base, Token, bpl);
+
+   if (m1.status == 200)
+   {
+    Uv = JsonConvert.DeserializeObject<Ckup_Return>(m1.body);
+   }
+   else
+   {
+    Uv.code = m1.status;
+    Uv.message = m1.message;
+   }
+
+   return Uv;
   }
  }
 }
