@@ -28,37 +28,34 @@ namespace Medical_Profile
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 5000;
    string Token = Enc256.Encode(Key, Salt, Claims);
-   using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   m1 = await Get_Data(Base, Token, bpl);
+   if (m1.status == 200)
    {
-    // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
-    m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
-    if (m1.status == 200)
-    {
-     l1 = JsonConvert.DeserializeObject<Level1_Return>(m1.body);
-    }
-    else
-    {
-     l1.code = m1.status;
-     l1.message = m1.message;
-    }
+    l1 = JsonConvert.DeserializeObject<Level1_Return>(m1.body);
+   }
+   else
+   {
+    l1.code = m1.status;
+    l1.message = m1.message;
    }
 
    return l1;
   }
-  
 
-   public async static Task<Dsave_return> Save_exception(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
+
+  public async static Task<Dsave_return> Save_exception(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
   {
    var Dr = new Dsave_return();
    Mret M1 = null;
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 6725;
    string Token = Enc256.Encode(Key, Salt, Claims);
-   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-   {
+ //  using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+  // {
     try
     {
-     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     M1 = await Get_Data(Base, Token, Bpl);
+     //   M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
      if (M1.status == 200)
      {
       Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
@@ -75,7 +72,7 @@ namespace Medical_Profile
     {
      MessageBox.Show(ex.Message);
     }
-   }
+ //  }
 
    return Dr;
   }
@@ -87,12 +84,13 @@ namespace Medical_Profile
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5184;
    string Token = Enc256.Encode(Key, Salt, Claims);
-   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-   {
+ //  using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+ //  {
     try
     {
      // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
-     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     M1 = await Get_Data(Base, Token, Bpl);
+     //  M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
      if (M1.status == 200)
      {
       Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
@@ -107,9 +105,9 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
- //    int i = 1;
+     //    int i = 1;
     }
-   }
+ //  }
 
    return Dr;
   }
@@ -121,12 +119,13 @@ namespace Medical_Profile
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5163;
    string Token = Enc256.Encode(Key, Salt, Claims);
-   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-   {
+ //  using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+ //  {
     try
     {
      // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
-     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     M1 = await Get_Data(Base, Token, Bpl);
+     //     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
      if (M1.status == 200)
      {
       Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
@@ -141,9 +140,9 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
-  //   int i = 1;
+     //   int i = 1;
     }
-   }
+ //  }
 
    return Dr;
   }
@@ -165,12 +164,13 @@ namespace Medical_Profile
 
    Bpl["Call_vector"] = 7943;
    string Token = Enc256.Encode(Key, Salt, Claims);
-   using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-   {
+  // using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+  // {
     try
     {
      // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
-     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+     M1 = await Get_Data(Base, Token, Bpl);
+     //   M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
      if (M1.status == 200)
      {
       Dvr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
@@ -185,9 +185,9 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
-  //   int i = 1;
+     //   int i = 1;
     }
-   }
+  // }
 
    return Dvr;
   }
@@ -197,7 +197,7 @@ namespace Medical_Profile
    var l2 = new Level2_Return();
    if (File.Exists("l2ret.json"))
    {
-  //  Mret m2 = null;
+    //  Mret m2 = null;
     using (var sr = new StreamReader("l2ret.json"))
     {
      string l2d = sr.ReadToEnd();
@@ -212,12 +212,13 @@ namespace Medical_Profile
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 6000;
    string Token = Enc256.Encode(Key, Salt, Claims);
-   using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-   {
+ //  using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+  // {
     try
     {
      // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
-     m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
+     m1 = await Get_Data(Base, Token, bpl);
+     //   m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
      if (m1.status == 200)
      {
       l2 = JsonConvert.DeserializeObject<Level2_Return>(m1.body);
@@ -232,9 +233,9 @@ namespace Medical_Profile
     catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
     {
-  //   int i = 1;
+     //   int i = 1;
     }
-   }
+  // }
 
    return l2;
   }
@@ -246,11 +247,12 @@ namespace Medical_Profile
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 4152;
    string Token = Enc256.Encode(Key, Salt, Claims);
-   using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-   {
+ //  using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+  // {
     // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
-    m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
-   }
+    m1 = await Get_Data(Base, Token, bpl);
+    //  m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
+//   }
 
    if (m1.status == 200)
    {
@@ -265,20 +267,20 @@ namespace Medical_Profile
    return Rv;
   }
 
-  public static async Task<Mret> Get_Data(string Base,string Token,Dictionary<string,object> Bpl)
+  public static async Task<Mret> Get_Data(string Base, string Token, Dictionary<string, object> Bpl)
   {
    Mret m1 = null;
-    using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-    {
-     var task = Task.Run(() => cli.Request().PostJsonAsync(Bpl));
-     task.Wait();
-     var rsp = task.Result;
-     var cnt = rsp.Content;
+   using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
+   {
+    var task = Task.Run(() => cli.Request().PostJsonAsync(Bpl));
+    task.Wait();
+    var rsp = task.Result;
+    var cnt = rsp.Content;
 
-     string s = await cnt.ReadAsStringAsync();
+    string s = await cnt.ReadAsStringAsync();
 
-     m1 = JsonConvert.DeserializeObject<Mret>(s);
-    }
+    m1 = JsonConvert.DeserializeObject<Mret>(s);
+   }
    return m1;
   }
   public async static Task<Ckup_Return> Update_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)

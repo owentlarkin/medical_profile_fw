@@ -19,6 +19,7 @@ using global::Newtonsoft.Json;
 using System.Text;
 using Enc;
 using System.Threading.Tasks;
+using JR.Utils.GUI.Forms;
 
 namespace Medical_Profile
 {
@@ -47,6 +48,10 @@ namespace Medical_Profile
   private bool Preview = false;
   public MPC_key Mpck = null;
 
+#if DEBUG
+  public string User_Name;
+  public string Machine_Name;
+#endif
   private enum Load_state
   {
    not_loaded,
@@ -153,7 +158,7 @@ namespace Medical_Profile
    }
   }
 
-  private string  Handle_file(string eval)
+  private string Handle_file(string eval)
   {
    MPC_type mty = null;
    string rjson = Enc256.Decrypt(eval, enck, 17531);
@@ -178,7 +183,7 @@ namespace Medical_Profile
    Mpck = JsonConvert.DeserializeObject<MPC_key>(rjson);
 
    if (Mpck == null)
-    return "1"; 
+    return "1";
 
    if (!string.IsNullOrEmpty(mty.Akey))
    {
@@ -209,7 +214,7 @@ namespace Medical_Profile
    return s1.Substring(0, insert_loc) + s2 + s1.Substring(insert_loc);
   }
 
-
+#if DEBUG
   private int Handle_testmode(string un)
   {
    MPC_User mpu;
@@ -224,34 +229,31 @@ namespace Medical_Profile
     mpu = JsonConvert.DeserializeObject<MPC_User>(ds);
    }
 
-   Mpck = new MPC_key();
+   Mpck = new MPC_key()
    {
-    var withBlock = Mpck;
-    withBlock.Url = mpu.Url;
-    withBlock.Mkey = mpu.Mkey;
-    withBlock.Salt = mpu.Salt;
-    withBlock.Email = mpu.Email;
-    withBlock.Dlab = mpu.Disk_Label;
-    withBlock.Secret = mpu.Secret1;
-    withBlock.Iterations = mpu.Iterations;
-  //  withBlock.Blocks = mpu.Blocks;
-    withBlock.Blocklist = mpu.Blocklist;
-    withBlock.K1 = mpu.K1;
-   // withBlock.Labels = mpu.Labels;
- //   withBlock.Lines = mpu.Lines;
-    withBlock.Minimum_blocks = mpu.Minimum_blocks;
-  //  withBlock.Points = mpu.Points;
-    withBlock.Sec_visible = Convert.ToBoolean(mpu.Sec_visible);
-    withBlock.Sptitle = mpu.Sptitle;
-    withBlock.Version = mpu.Version;
-   }
+    Url = mpu.Url,
+    Mkey = mpu.Mkey,
+    Salt = mpu.Salt,
+    Email = mpu.Email,
+    Dlab = mpu.Disk_Label,
+    Secret = mpu.Secret1,
+    Iterations = mpu.Iterations,
+    Blocklist = mpu.Blocklist,
+    K1 = mpu.K1,
+    Minimum_blocks = mpu.Minimum_blocks,
+    Sec_visible = Convert.ToBoolean(mpu.Sec_visible),
+    Sptitle = mpu.Sptitle,
+    Version = mpu.Version
+   };
 
+   User_Name = mpu.UserName;
+   Machine_Name = mpu.MachineName;
    cid = mpu.cid;
    drive_label = mpu.Disk_Label;
    file_access = true;
    return 0;
   }
-
+#endif
   private int Handle_usb(string dle)
   {
    string fs;
@@ -511,7 +513,7 @@ namespace Medical_Profile
    Tb.StyledText = val.StyledText;
    return y + h;
   }
- 
+
   private void Generate_Labels()
   {
    string P1 = @"(\(??\d\d\d\)??[\s|-]\d\d\d-\d\d\d\d)";
@@ -537,7 +539,7 @@ namespace Medical_Profile
     return;
    }
 
-   labelno = 0;   
+   labelno = 0;
 
    pname = Patient.Text;
    pdob = DOB.Text;
@@ -991,11 +993,11 @@ namespace Medical_Profile
    obox.Controls.Add(rbox);
    return obox;
   }
-  public async  Task<string> Get_Eval(MPC_key Mk)
+  public async Task<string> Get_Eval(MPC_key Mk)
   {
-    DateTimeOffset nw = new DateTimeOffset();
+   DateTimeOffset nw = new DateTimeOffset();
 
-   var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile",true);
+   var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
    string salt;
    string New_Eval = null;
    Ckup_Return mcd;
@@ -1023,7 +1025,7 @@ namespace Medical_Profile
    aws_body["vector_code"] = "4162";
    Application.UseWaitCursor = true;
 
-  // Mk.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
+   // Mk.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
 
    mcd = await Aws.Update_aysnc(Mk.Url, enck, salt, payload, aws_body);
    Application.UseWaitCursor = false;
@@ -1060,17 +1062,19 @@ namespace Medical_Profile
    ath_blist.Clear();
    installed_version = key.GetValue("version", null).ToString();
 
+#if DEBUG
    if (!string.IsNullOrEmpty(Properties.Settings.Default.User_number))
    {
     testmode = true;
     Handle_testmode(Properties.Settings.Default.User_number);
    }
+#endif
 
    if (!testmode)
    {
     eval_encoded = key.GetValue("eval", null)?.ToString();
     if (eval_encoded is object)
-    {      
+    {
      file_access = true;
     }
 
@@ -1094,6 +1098,7 @@ namespace Medical_Profile
        MessageBox.Show("Application can not run", "Registry entry is missing", MessageBoxButtons.OK);
        Close();
        Environment.Exit(0);
+       return;
       }
      }
     }
@@ -1104,12 +1109,14 @@ namespace Medical_Profile
      {
       Application.Exit();
       Environment.Exit(0);
+      return;
      }
     }
     else if (Handle_usb(drive_label_encoded) != 0)
     {
      Application.Exit();
      Environment.Exit(0);
+     return;
     }
    }
 
@@ -1159,11 +1166,8 @@ namespace Medical_Profile
    }
 
    minimum_blocks = Convert.ToInt32(Mpck.Minimum_blocks);
-//   blocks_number = Convert.ToInt32(Mpck.Blocks);
    blocks_number = 9;
    int BPR = 3;
-//   labels_number = Convert.ToInt32(Mpck.Labels);
-//   lines_number = Convert.ToInt32(Mpck.Lines);
    lines_number = 10;
    labels_number = 5;
 
@@ -1221,9 +1225,15 @@ namespace Medical_Profile
    }
    catch (Exception ex)
    {
+    string S = Program.Format_exception(ex);
+
+    FlexibleMessageBox.FONT = new Font("Calibri", 10, System.Drawing.FontStyle.Bold);
+    FlexibleMessageBox.Show(S, "Exception Occured", MessageBoxButtons.OK, MessageBoxIcon.Error);
     MessageBox.Show(ex.Message);
+    Application.Exit();
+    return;
    }
-   
+
    Printers.Items.Clear();
    pnames = Framework.GetPrinters();
    if (pnames != null && pnames.Count() > 0)
@@ -1272,13 +1282,13 @@ namespace Medical_Profile
    Text = "Medical Profile Card (" + installed_version + ")" + " - Loading Practice Information";
    Update();
 
-  // Mpck.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
+   // Mpck.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
 
    if (run_timer)
    {
     Ettb.Text = start_timer(SW);
    }
-   
+
    Application.UseWaitCursor = true;
    L1_ret = await Aws.Get_Level1_aysnc(Mpck.Url, enck, Mpck.Salt, claims, aws_body);
    Application.UseWaitCursor = false;
@@ -1287,9 +1297,10 @@ namespace Medical_Profile
     MessageBox.Show("Returned Code(" + L1_ret.code.ToString() + ") - " + L1_ret.message, "Error getting practice information", MessageBoxButtons.OK);
     System.Windows.Forms.Application.Exit();
     Application.DoEvents();
-    Close();
+    this.Close();
+    return;
    }
-   
+
    Text = "Medical Profile Card (" + installed_version + ")";
    Update();
 
@@ -1313,10 +1324,11 @@ namespace Medical_Profile
     System.Windows.Forms.Application.Exit();
     Application.DoEvents();
     Close();
+    return;
    }
 
    Dstate = Data_state.Edit_mode;
-   Practice.Text = L1_ret.Prc.name;
+   Practice.Text = L1_ret?.Prc?.name;
    Load_Department(L1_ret);
    Load_providers(L1_ret);
 
@@ -1341,11 +1353,11 @@ namespace Medical_Profile
   {
    var nw = DateTimeOffset.UtcNow;
 
-   #if DEBUG
+#if DEBUG
    var ew = nw.AddYears(1);
-   #else
+#else
    var ew = nw.AddMinutes(5);
-   #endif
+#endif
 
    IDateTimeProvider provider = new UtcDateTimeProvider();
    var payload = new Dictionary<string, object>() { { "aud", "http: //medicalprofilecard.com" }, { "exp", ew.ToUnixTimeSeconds() }, { "iss", Mpck.Email }, { "label", drive_label }, { "key", Mpck.Mkey } };
@@ -1360,9 +1372,23 @@ namespace Medical_Profile
     payload["f1t"] = ftime;
    }
 
-   payload["User_Name"] = Environment.UserName;
-   payload["Machine_Name"] = Environment.MachineName;
+   #if DEBUG
+   if (testmode)
+   {
+    if (!string.IsNullOrEmpty(User_Name))
+     payload["User_Name"] = User_Name;
 
+    if (!string.IsNullOrEmpty(Machine_Name))
+     payload["Machine_Name"] = Machine_Name;
+   }
+  else
+   {
+   #endif
+    payload["User_Name"] = Environment.UserName;
+    payload["Machine_Name"] = Environment.MachineName;
+    #if DEBUG
+   }
+   #endif
    return payload;
   }
 
@@ -1475,7 +1501,7 @@ namespace Medical_Profile
     }
    }
   }
- 
+
   private void Leave_fld(object sender, EventArgs e)
   {
    RichTextBox rtb;
@@ -1747,7 +1773,7 @@ namespace Medical_Profile
    ContextMenuStrip cm = (ContextMenuStrip)sender;
    cm.Close();
   }
- 
+
   private void Cud_activate(object sender, EventArgs e)
   {
    ToolStripMenuItem tsi;
@@ -1826,7 +1852,7 @@ namespace Medical_Profile
     Set_empgb();
    }
   }
- 
+
   private void Field_click(object sender, EventArgs e)
   {
    TextBox blk = (TextBox)sender;
@@ -2356,7 +2382,6 @@ namespace Medical_Profile
     Height = Pn_height,
     Padding = new Padding(0, 0, 0, 0),
     Margin = new Padding(0, 0, 0, 0),
-    //   BorderStyle = BorderStyle.FixedSingle,
     AutoSize = false,
     AutoScroll = false
    };
@@ -2702,6 +2727,11 @@ namespace Medical_Profile
    else
    {
     Data_altered = true;
+    if (!string.IsNullOrEmpty(Patient.Text))
+    {
+     Savemi.Enabled = true;
+     Savemi.Visible = true;
+    }
    }
   }
 
@@ -2974,7 +3004,7 @@ namespace Medical_Profile
     Patient.Select(0, Patient.Text.Length);
     patep.SetError(Patient, "A patient name must be either <first> <last> or <last>,<first>");
    }
-  }  
+  }
 
   private void Rtbbox_enter(object sender, EventArgs e)
   {
@@ -3247,6 +3277,7 @@ namespace Medical_Profile
    Application.UseWaitCursor = false;
    Add_saved_item(dr.ds[0]);
    Data_altered = false;
+
    if (run_timer)
    {
     Ettb.Text = stop_timer(SW);

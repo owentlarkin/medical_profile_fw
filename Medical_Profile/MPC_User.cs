@@ -10,8 +10,6 @@ namespace Medical_Profile
   public int State { get; set; }
   public int Num { get; set; }
  }
-
- /* TODO ERROR: Skipped IfDirectiveTrivia */
  internal class MPC_User
  {
   public int User_Number { get; set; }
@@ -32,19 +30,17 @@ namespace Medical_Profile
   public string Email { get; set; }
   public int Iterations { get; set; }
   public string Phone { get; set; }
-//  public string Lines { get; set; }
-//  public string Blocks { get; set; }
   public string Sec_visible { get; set; }
   public string Sptitle { get; set; }
-//  public string Points { get; set; }
-//  public string Labels { get; set; }
+  public string UserName { get; set; }
+  public string MachineName { get; set; }
   public string Comment { get; set; }
   public string Version { get; set; }
   public string Minimum_blocks { get; set; }
   public DateTime Expiration { get; set; }
   public List<string> Blocklist { get; set; }
  }
- 
+
  public class MPC_key
  {
   public string Mkey { get; set; }

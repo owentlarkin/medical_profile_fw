@@ -43,24 +43,7 @@ namespace Medical_Profile
   public FontInfo lfnt = new FontInfo("Calibri", 9.0, DYMO.Label.Framework.FontStyle.Bold);
   public string flsort = "Date";
   public string enck = null;
-  public string read_patient;
-
-  //public static void Main()
-  //{
-  // try
-  // {
-  //  Application.EnableVisualStyles();
-  //  Application.SetCompatibleTextRenderingDefault(false);
-  //  Application.Run(new Form1());
-  // }
-  // catch (Exception ex)
-  // {
-  //  string s = Format_exception(ex);
-  //  Interaction.MsgBox("Exception", MsgBoxStyle.OkOnly, s);
-  //  Application.Exit();
-  // }
-  //}
-
+  public string read_patient;  
   public bool Check_altered()
   {
    DialogResult res;
@@ -161,7 +144,7 @@ namespace Medical_Profile
     dsaves.DisplayMember = "key";
     dsaves.ValueMember = "Value";
     dsaves.DataSource = new BindingSource(saved_patients, null);
-    dsaves.SelectedIndex = dsaves.FindStringExact(ds.Name);
+    dsaves.SelectedIndex = dsaves.FindStringExact(pn);
     dsaves.Enabled = true;
     dsaves.Visible = true;
     Dsbox.Enabled = true;
@@ -177,43 +160,7 @@ namespace Medical_Profile
 
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
   }
-
-  //public string Fe(Exception e, string header = "Unhandled Exception")
-  //{
-  // var erm = new StringBuilder();
-  // erm.Append(header);
-  // erm.Append("\n");
-  // erm.Append("Installed Version ");
-  // erm.Append(installed_version);
-  // erm.Append("\n");
-  // if (e is AggregateException)
-  // {
-  //  AggregateException ae = e as AggregateException;
-  //  erm.Append("One or more errors have occured in a background process." + "\n");
-  //  foreach (var e1 in ae.Flatten().InnerExceptions)
-  //  {
-  //   erm.Append("\n");
-  //   erm.Append(e1.Message);
-  //   if (e1.StackTrace is object)
-  //   {
-  //    erm.Append("\n" + "Stack Trace:" + "\n");
-  //    erm.Append(e1.StackTrace);
-  //   }
-  //  }
-  // }
-  // else
-  // {
-  //  erm.Append(e.Message);
-  //  if (e.StackTrace is object)
-  //  {
-  //   erm.Append("\n" + "Stack Trace:" + "\n");
-  //   erm.Append(e.StackTrace);
-  //  }
-  // }
-
-  // return erm.ToString();
-  //}
-
+ 
   public void Set_saved_items(List<Dsave> ds, bool preserve = false)
   {
    string dss = null;
@@ -293,7 +240,6 @@ namespace Medical_Profile
       sb.Append(" lwtim[" + d.lwtim + "]");
      }
 
-     //   Console.WriteLine(sb.ToString());
      saved_patients[dss] = d;
     }
 
@@ -847,6 +793,7 @@ namespace Medical_Profile
    }
 
    Savemi.Visible = true;
+   Savemi.Enabled = true;
    Deletemi.Visible = true;
    if (bl_used.Count > 0)
    {
@@ -941,11 +888,6 @@ namespace Medical_Profile
    try
    {
     lab1.Clear();
-    //foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
-    //{
-    // k.Value.State = (int)Load_state.not_in_use;
-    // k.Value.Num = 0;
-    //}
 
     bl_loaded.Clear();
 
@@ -1068,40 +1010,7 @@ namespace Medical_Profile
    et = timer.ElapsedMilliseconds.ToString();
    return et;
   }
-
-  //public static string Format_exception(Exception e, string header = "Error obtaining data")
-  //{
-  // var erm = new StringBuilder();
-  // erm.Append(header);
-  // erm.Append("\n");
-  // if (e is AggregateException)
-  // {
-  //  AggregateException ae = e as AggregateException;
-  //  erm.Append("One or more errors have occured in a background process." + "\n");
-  //  foreach (var e1 in ae.Flatten().InnerExceptions)
-  //  {
-  //   erm.Append("\n");
-  //   erm.Append(e1.Message);
-  //   if (e1.StackTrace is object)
-  //   {
-  //    erm.Append("\n" + "Stack Trace:" + "\n");
-  //    erm.Append(e1.StackTrace);
-  //   }
-  //  }
-  // }
-  // else
-  // {
-  //  erm.Append(e.Message);
-  //  if (e.StackTrace is object)
-  //  {
-  //   erm.Append("\n" + "Stack Trace:" + "\n");
-  //   erm.Append(e.StackTrace);
-  //  }
-  // }
-
-  // return erm.ToString();
-  //}
-
+ 
   private float Wlengb(string s, double pts = default)
   {
    float wl = 0.0F;
