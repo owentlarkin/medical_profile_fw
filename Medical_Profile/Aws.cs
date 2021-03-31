@@ -272,6 +272,7 @@ namespace Medical_Profile
    Mret m1 = null;
    using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
    {
+    cli.Configure(settings => settings.Timeout = TimeSpan.FromSeconds(60));
     var task = Task.Run(() => cli.Request().PostJsonAsync(Bpl));
     task.Wait();
     var rsp = task.Result;

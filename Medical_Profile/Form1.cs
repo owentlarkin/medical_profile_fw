@@ -31,6 +31,11 @@ namespace Medical_Profile
   private string ftime = null;
   private object iLock = new object();
   private char[] cv = new char[17];
+
+  private RegistryKey Rkey = null;
+  private List<string> Rkeynames = new List<string>();
+  private Dictionary<string, object> Rkeyvals = new Dictionary<string, object>();
+
   private int Ymargin = 6;
   private int Xmargin = 18;
   private int margin3 = 10;
@@ -146,16 +151,34 @@ namespace Medical_Profile
    cv[4] = Convert.ToChar(title[5] - 64);
    cv[14] = Convert.ToChar(title[23] + 16);
 
-   var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
-   if (key is object)
+   Rkey = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
+   if (Rkey is object)
+    Rkeynames = Rkey.GetValueNames().ToList();
+   else
    {
-    cid = key.GetValue("Cid", null).ToString();
-    if (cid == default)
-    {
-     cid = Guid.NewGuid().ToString();
-     key.SetValue("Cid", cid);
-    }
+    Rkey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\Medical_Profile");
+    Rkey.SetValue("Path", Path.GetDirectoryName(Application.ExecutablePath));
+    Rkey.SetValue("Version", "?.?.?");
+    Rkey = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
    }
+
+   Rkeynames = Rkey.GetValueNames().ToList();
+
+   foreach (string Vn in Rkeynames)
+   {
+    Rkeyvals[Vn] = Rkey.GetValue(Vn, null);
+   }
+
+   if (Rkeyvals.ContainsKey("Cid"))
+    cid = (string)Rkeyvals["Cid"];
+
+   if (cid == default)
+   {
+    cid = Guid.NewGuid().ToString();
+    Rkey.SetValue("Cid", cid);
+   }
+
+   Rkey.Dispose();
   }
 
   private string Handle_file(string eval)
@@ -364,7 +387,10 @@ namespace Medical_Profile
    {
     Pnglablist.Add(Render(label));
     string lns = "Label" + lno.ToString();
+
+#if DEBUG
     label.SaveToFile(lns + ".label");
+#endif
    }
    else
    {
@@ -1056,11 +1082,19 @@ namespace Medical_Profile
    DoubleBuffered = true;
    file_access = false;
    enck = new string(cv);
-   var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile");
+
+
+
+   //var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile");
+
    drive_label_encoded = null;
    eval_encoded = null;
    ath_blist.Clear();
-   installed_version = key.GetValue("version", null).ToString();
+
+   if (Rkeyvals.ContainsKey("Version"))
+    installed_version = (string)Rkeyvals["Version"];
+   // if (key != null)
+   // installed_version = key.GetValue("version", null).ToString();
 
 #if DEBUG
    if (!string.IsNullOrEmpty(Properties.Settings.Default.User_number))
@@ -1072,22 +1106,40 @@ namespace Medical_Profile
 
    if (!testmode)
    {
-    eval_encoded = key.GetValue("eval", null)?.ToString();
+    if (Rkeyvals.ContainsKey("eval"))
+     eval_encoded = (string)Rkeyvals["eval"];
+
+    //if (key != null)
+    //{
+    // eval_encoded = key.GetValue("eval", null)?.ToString();
     if (eval_encoded is object)
     {
      file_access = true;
     }
+    //}
 
     if (!file_access)
     {
-     drive_label_encoded = key.GetValue("Label", null)?.ToString();
+     //if (key != null)
+     // drive_label_encoded = key.GetValue("Label", null)?.ToString();
+
+     if (Rkeyvals.ContainsKey("Label"))
+      drive_label_encoded = (string)Rkeyvals["Label"];
+
      if (drive_label_encoded is null)
      {
       using (Form f4 = new Formaik(cv))
       {
        f4.ShowDialog();
-       eval_encoded = key.GetValue("eval", null)?.ToString(); ;
-       if (string.IsNullOrEmpty(eval_encoded))
+
+       //eval_encoded = key.GetValue("eval", null)?.ToString(); ;
+
+       using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile"))
+       {
+        eval_encoded = key.GetValue("eval", null)?.ToString();
+       }
+
+       if (!string.IsNullOrEmpty(eval_encoded))
        {
         file_access = true;
        }
@@ -1282,8 +1334,6 @@ namespace Medical_Profile
    Text = "Medical Profile Card (" + installed_version + ")" + " - Loading Practice Information";
    Update();
 
-   // Mpck.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
-
    if (run_timer)
    {
     Ettb.Text = start_timer(SW);
@@ -1302,6 +1352,7 @@ namespace Medical_Profile
    }
 
    Text = "Medical Profile Card (" + installed_version + ")";
+
    Update();
 
    if (!string.IsNullOrEmpty(L1_ret.Eval))
@@ -1372,7 +1423,7 @@ namespace Medical_Profile
     payload["f1t"] = ftime;
    }
 
-   #if DEBUG
+#if DEBUG
    if (testmode)
    {
     if (!string.IsNullOrEmpty(User_Name))
@@ -1381,14 +1432,14 @@ namespace Medical_Profile
     if (!string.IsNullOrEmpty(Machine_Name))
      payload["Machine_Name"] = Machine_Name;
    }
-  else
+   else
    {
-   #endif
+#endif
     payload["User_Name"] = Environment.UserName;
     payload["Machine_Name"] = Environment.MachineName;
-    #if DEBUG
+#if DEBUG
    }
-   #endif
+#endif
    return payload;
   }
 

@@ -1,5 +1,6 @@
 ﻿using JWT;
 using JWT.Algorithms;
+using JWT.Exceptions;
 using JWT.Serializers;
 using System;
 using System.Collections.Generic;
@@ -109,7 +110,7 @@ namespace Enc
         IDateTimeProvider provider = new UtcDateTimeProvider();
         IJwtValidator validator = new JwtValidator(serializer, provider);
         IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
-        IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder);
+        IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder,new HMACSHA256Algorithm());
 
         var dict = decoder.DecodeToObject<IDictionary<string, object>>(token, NewKey(secret, salt, iter), verify: true);
 
