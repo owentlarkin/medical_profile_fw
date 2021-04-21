@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dymodkl;
 
 namespace Medical_Profile
 {
@@ -33,6 +34,8 @@ namespace Medical_Profile
    Application.ThreadException += new ThreadExceptionEventHandler(UIException);
 
    Mpf = new Form1();
+
+   Dds.Init();
 
    Application.Run(Mpf);
   }

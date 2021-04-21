@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using global::Amazon;
 using global::Amazon.DynamoDBv2;
 using global::Amazon.DynamoDBv2.DocumentModel;
+using global::DymoSDK.Implementations;
 using global::DYMO.Label.Framework;
 using global::JWT;
 using global::Microsoft.Win32;
@@ -40,7 +41,7 @@ namespace Medical_Profile
   private int Xmargin = 18;
   private int margin3 = 10;
   private int label_header = 345;
-  private float ll = (float)(3600 / 15.0);
+  //  private float ll = (float)(3600 / 15.0);
   private int nlead = 191;
   private int ylimit = 2386;
   int Xsize = 365;
@@ -455,9 +456,9 @@ namespace Medical_Profile
     lis = Adjust_lines(lis, "Label", elines);
     li = Regex.Split(lis, @"\r\n|\n");
     int lic = li.Count();
-    if (max_rec[bn] > 0 & lic > max_rec[bn])
+    if (Max_rec[bn] > 0 & lic > Max_rec[bn])
     {
-     lic = max_rec[bn];
+     lic = Max_rec[bn];
      int iadj = 0;
      foreach (KeyValuePair<int, int> kvp in elines)
      {
@@ -522,315 +523,298 @@ namespace Medical_Profile
     MenuStrip1.Items.Remove(ts);
   }
 
-  private int Lab_field(string Name, StyledTextBuilder val, float x, int y, float w, int h)
-  {
-   TextObject Tb;
-   Label.AddObject(new TextObject(Name), new Rect(x, y / 15.0, w, h / 15.0));
-   Tb = (TextObject)Label.GetObjectByName(Name);
-   Tb.StyledText = val.StyledText;
-   return y + h;
-  }
 
-  private int Lab_field(string Name, StyledTextBuilder val, int x, int y, float w, int h)
-  {
-   TextObject Tb;
-   Label.AddObject(new TextObject(Name), new Rect(x / 15.0, y / 15.0, w, h / 15.0));
-   Tb = (TextObject)Label.GetObjectByName(Name);
-   Tb.StyledText = val.StyledText;
-   return y + h;
-  }
+  //private void Generate_Labels()
+  //{
+  // string P1 = @"(\(??\d\d\d\)??[\s|-]\d\d\d-\d\d\d\d)";
+  // string P2 = @"(\d\d\d-\d\d\d\d)";
+  // Match M1;
+  // string[] li = null;
+  // string lis;
+  // var yadj = default(int);
+  // var stb = new StyledTextBuilder();
+  // var stx = new StyledTextBuilder();
+  // float flen;
+  // float nlen;
+  // float dobst;
+  // float lpht;
+  // int cy_save;
+  // int y_space_needed;
+  // TextObject tb;
+  // string Phone_number;
+  // var elines = new Dictionary<int, int>();
+  // Reset_labels();
+  // if (!Check_lines())
+  // {
+  //  return;
+  // }
 
-  private void Generate_Labels()
-  {
-   string P1 = @"(\(??\d\d\d\)??[\s|-]\d\d\d-\d\d\d\d)";
-   string P2 = @"(\d\d\d-\d\d\d\d)";
-   Match M1;
-   string[] li = null;
-   string lis;
-   var yadj = default(int);
-   var stb = new StyledTextBuilder();
-   var stx = new StyledTextBuilder();
-   float flen;
-   float nlen;
-   float dobst;
-   float lpht;
-   int cy_save;
-   int y_space_needed;
-   TextObject tb;
-   string Phone_number;
-   var elines = new Dictionary<int, int>();
-   Reset_labels();
-   if (!Check_lines())
-   {
-    return;
-   }
+  // labelno = 0;
 
-   labelno = 0;
+  // pname = Patient.Text;
+  // pdob = DOB.Text;
+  // Label = (DieCutLabel)Framework.Open("mpc1.label");
+  // tb = (TextObject)Label.GetObjectByName("name");
+  // Label.DeleteObject(tb);
+  // tb = (TextObject)Label.GetObjectByName("labtext");
+  // Label.DeleteObject(tb);
+  // stb = new StyledTextBuilder();
+  // flen = Wlengb("DOB: ", 12);
+  // stb.Append("DOB: ", nfnt, Colors.Black);
+  // stb.Append(DOB.Text, nfnt, Colors.Black);
+  // flen = flen + Wleng(DOB.Text, 12);
+  // dobst = (float)(3900.0 / 15.0 - flen);
+  // Label.AddObject(new TextObject("dob"), new Rect(dobst, 480 / 15.0, flen, 210 / 15.0));
+  // tb = (TextObject)Label.GetObjectByName("dob");
+  // tb.HorizontalAlignment = TextAlignment.Right;
+  // tb.StyledText = stb.StyledText;
+  // nlen = (float)(3900.0 / 15.0 - flen - 317 / 15.0);
+  // name_length = Wlengb(pname, 12);
+  // stb = new StyledTextBuilder();
+  // stb.Append(pname, nfnt, Colors.Black);
+  // currenty = Lab_field("name", stb, 317, 480, nlen, 210);
+  // if (address.Lines.Count() > 0)
+  // {
+  //  stb = new StyledTextBuilder();
+  //  ltline = 0;
+  //  li = address.Lines;
+  //  for (int i = 0, loopTo = li.Count() - 1; i <= loopTo; i++)
+  //  {
+  //   if (!((li[i] ?? "") == (string.Empty ?? "")))
+  //   {
+  //    if (i > 0)
+  //    {
+  //     stb.Append("\n", reg_font, Colors.Black);
+  //    }
 
-   pname = Patient.Text;
-   pdob = DOB.Text;
-   Label = (DieCutLabel)Framework.Open("mpc1.label");
-   tb = (TextObject)Label.GetObjectByName("name");
-   Label.DeleteObject(tb);
-   tb = (TextObject)Label.GetObjectByName("labtext");
-   Label.DeleteObject(tb);
-   stb = new StyledTextBuilder();
-   flen = Wlengb("DOB: ", 12);
-   stb.Append("DOB: ", nfnt, Colors.Black);
-   stb.Append(DOB.Text, nfnt, Colors.Black);
-   flen = flen + Wleng(DOB.Text, 12);
-   dobst = (float)(3900.0 / 15.0 - flen);
-   Label.AddObject(new TextObject("dob"), new Rect(dobst, 480 / 15.0, flen, 210 / 15.0));
-   tb = (TextObject)Label.GetObjectByName("dob");
-   tb.HorizontalAlignment = TextAlignment.Right;
-   tb.StyledText = stb.StyledText;
-   nlen = (float)(3900.0 / 15.0 - flen - 317 / 15.0);
-   name_length = Wlengb(pname, 12);
-   stb = new StyledTextBuilder();
-   stb.Append(pname, nfnt, Colors.Black);
-   currenty = Lab_field("name", stb, 317, 480, nlen, 210);
-   if (address.Lines.Count() > 0)
-   {
-    stb = new StyledTextBuilder();
-    ltline = 0;
-    li = address.Lines;
-    for (int i = 0, loopTo = li.Count() - 1; i <= loopTo; i++)
-    {
-     if (!((li[i] ?? "") == (string.Empty ?? "")))
-     {
-      if (i > 0)
-      {
-       stb.Append("\n", reg_font, Colors.Black);
-      }
+  //    stb.Append(li[i], reg_font, Colors.Black);
+  //    ltline += 1;
+  //   }
+  //  }
 
-      stb.Append(li[i], reg_font, Colors.Black);
-      ltline += 1;
-     }
-    }
+  //  currenty = Lab_field("address", stb, 317, currenty, ll, ltline * 191);
+  // }
 
-    currenty = Lab_field("address", stb, 317, currenty, ll, ltline * 191);
-   }
+  // if (!((Phone.Text ?? "") == (string.Empty ?? "")))
+  // {
+  //  stb = new StyledTextBuilder();
+  //  stb.Append("Phone: ", bld_font, Colors.Black);
+  //  stb.Append(Phone.Text, reg_font, Colors.Black);
+  //  currenty = Lab_field("phone", stb, 317, currenty, ll, 191);
+  // }
 
-   if (!((Phone.Text ?? "") == (string.Empty ?? "")))
-   {
-    stb = new StyledTextBuilder();
-    stb.Append("Phone: ", bld_font, Colors.Black);
-    stb.Append(Phone.Text, reg_font, Colors.Black);
-    currenty = Lab_field("phone", stb, 317, currenty, ll, 191);
-   }
+  // if (!((econtact.Text ?? "") == (string.Empty ?? "")))
+  // {
+  //  stb = new StyledTextBuilder();
+  //  stb.Append("Emergency Contact: ", bld_font, Colors.Black);
+  //  stb.Append(econtact.Text, reg_font, Colors.Black);
+  //  currenty = Lab_field("econtact", stb, 317, currenty, ll, 191);
+  // }
 
-   if (!((econtact.Text ?? "") == (string.Empty ?? "")))
-   {
-    stb = new StyledTextBuilder();
-    stb.Append("Emergency Contact: ", bld_font, Colors.Black);
-    stb.Append(econtact.Text, reg_font, Colors.Black);
-    currenty = Lab_field("econtact", stb, 317, currenty, ll, 191);
-   }
+  // string dname = priph.Text;
+  // if (prv_combo.Items.Count > 0)
+  // {
+  //  dname = prv_combo.Text;
+  // }
 
-   string dname = priph.Text;
-   if (prv_combo.Items.Count > 0)
-   {
-    dname = prv_combo.Text;
-   }
+  // if (!((dname ?? "") == (string.Empty ?? "")))
+  // {
+  //  stb = new StyledTextBuilder();
+  //  stb.Append(lab1["priph_title:"], bp1_font, Colors.Black);
+  //  string s1 = lab1["priph_title:"];
+  //  if (!lab1["priph_title:"].EndsWith(":"))
+  //  {
+  //   stb.Append(":", bp1_font, Colors.Black);
+  //   s1 = s1 + ":";
+  //  }
 
-   if (!((dname ?? "") == (string.Empty ?? "")))
-   {
-    stb = new StyledTextBuilder();
-    stb.Append(lab1["priph_title:"], bp1_font, Colors.Black);
-    string s1 = lab1["priph_title:"];
-    if (!lab1["priph_title:"].EndsWith(":"))
-    {
-     stb.Append(":", bp1_font, Colors.Black);
-     s1 = s1 + ":";
-    }
+  //  lpht = (float)(Wlengb(s1, 9) * 1.33);
+  //  cy_save = currenty;
+  //  int pl = 230;
+  //  yadj = 30;
+  //  currenty = Lab_field("priphyst", stb, 317, currenty + yadj, lpht, pl);
+  //  lpht = (float)(lpht + 317 / 15.0);
+  //  Phone_number = string.Empty;
+  //  M1 = Regex.Match(dname, P1);
+  //  if (M1.Success)
+  //  {
+  //   Phone_number = M1.Value;
+  //   dname = dname.Replace(Phone_number, string.Empty);
+  //  }
 
-    lpht = (float)(Wlengb(s1, 9) * 1.33);
-    cy_save = currenty;
-    int pl = 230;
-    yadj = 30;
-    currenty = Lab_field("priphyst", stb, 317, currenty + yadj, lpht, pl);
-    lpht = (float)(lpht + 317 / 15.0);
-    Phone_number = string.Empty;
-    M1 = Regex.Match(dname, P1);
-    if (M1.Success)
-    {
-     Phone_number = M1.Value;
-     dname = dname.Replace(Phone_number, string.Empty);
-    }
+  //  if (!M1.Success)
+  //  {
+  //   M1 = Regex.Match(dname, P2);
+  //   if (M1.Success)
+  //   {
+  //    Phone_number = M1.Value;
+  //    dname = dname.Replace(Phone_number, string.Empty);
+  //   }
+  //  }
 
-    if (!M1.Success)
-    {
-     M1 = Regex.Match(dname, P2);
-     if (M1.Success)
-     {
-      Phone_number = M1.Value;
-      dname = dname.Replace(Phone_number, string.Empty);
-     }
-    }
+  //  stb = new StyledTextBuilder();
+  //  stb.Append(dname, rp1_font, Colors.Black);
+  //  if (!string.IsNullOrEmpty(Phone_number))
+  //  {
+  //   pl = 2 * pl;
+  //   stb.Append("\n", rp1_font, Colors.Black);
+  //   stb.Append("  " + Phone_number, rp1_font, Colors.Black);
+  //  }
 
-    stb = new StyledTextBuilder();
-    stb.Append(dname, rp1_font, Colors.Black);
-    if (!string.IsNullOrEmpty(Phone_number))
-    {
-     pl = 2 * pl;
-     stb.Append("\n", rp1_font, Colors.Black);
-     stb.Append("  " + Phone_number, rp1_font, Colors.Black);
-    }
+  //  nlen = (float)(3900 / 15.0 - lpht);
+  //  currenty = Lab_field("priphys", stb, lpht, cy_save + yadj, nlen, pl);
+  // }
 
-    nlen = (float)(3900 / 15.0 - lpht);
-    currenty = Lab_field("priphys", stb, lpht, cy_save + yadj, nlen, pl);
-   }
+  // if (lab1.ContainsKey("secph:"))
+  // {
+  //  stb = new StyledTextBuilder();
+  //  stb.Append(lab1["secph_title:"], bld_font, Colors.Black);
+  //  if (!lab1["secph_title:"].EndsWith(":"))
+  //  {
+  //   stb.Append(": ", bld_font, Colors.Black);
+  //  }
 
-   if (lab1.ContainsKey("secph:"))
-   {
-    stb = new StyledTextBuilder();
-    stb.Append(lab1["secph_title:"], bld_font, Colors.Black);
-    if (!lab1["secph_title:"].EndsWith(":"))
-    {
-     stb.Append(": ", bld_font, Colors.Black);
-    }
+  //  stb.Append(secph.Text, reg_font, Colors.Black);
+  //  currenty = Lab_field("spec1", stb, 317, currenty + yadj, ll, 191);
+  //  yadj = 0;
+  // }
 
-    stb.Append(secph.Text, reg_font, Colors.Black);
-    currenty = Lab_field("spec1", stb, 317, currenty + yadj, ll, 191);
-    yadj = 0;
-   }
+  // if (!((ins.Text ?? "") == (string.Empty ?? "")))
+  // {
+  //  stb = new StyledTextBuilder();
+  //  stb.Append("Insurance: ", bld_font, Colors.Black);
+  //  stb.Append(ins.Text, reg_font, Colors.Black);
+  //  currenty = Lab_field("insurance", stb, 317, currenty + yadj, ll, 191);
+  //  yadj = 0;
+  // }
+  // Output_label(ref pjob, ref Label, labelno);
+  // currenty = New_label(ref Label, ref labelno);
 
-   if (!((ins.Text ?? "") == (string.Empty ?? "")))
-   {
-    stb = new StyledTextBuilder();
-    stb.Append("Insurance: ", bld_font, Colors.Black);
-    stb.Append(ins.Text, reg_font, Colors.Black);
-    currenty = Lab_field("insurance", stb, 317, currenty + yadj, ll, 191);
-    yadj = 0;
-   }
-   Output_label(ref pjob, ref Label, labelno);
-   currenty = New_label(ref Label, ref labelno);
+  // stb = new StyledTextBuilder();
 
-   stb = new StyledTextBuilder();
+  // foreach (KeyValuePair<int, string> K in bl_used)
+  // {
+  //  int Bnum = K.Key;
+  //  GroupBox Gb = Grpblocks[Bnum];
 
-   foreach (KeyValuePair<int, string> K in bl_used)
-   {
-    int Bnum = K.Key;
-    GroupBox Gb = Grpblocks[Bnum];
+  //  if (Label is null)
+  //  {
+  //   currenty = New_label(ref Label, ref labelno);
+  //  }
 
-    if (Label is null)
-    {
-     currenty = New_label(ref Label, ref labelno);
-    }
+  //  if (labelno > labels_number)
+  //  {
+  //   break;
+  //  }
 
-    if (labelno > labels_number)
-    {
-     break;
-    }
+  //  if (!string.IsNullOrEmpty(Gb.Controls[0].Text))
+  //  {
+  //   y_space_needed = 0;
 
-    if (!string.IsNullOrEmpty(Gb.Controls[0].Text))
-    {
-     y_space_needed = 0;
+  //   if (string.IsNullOrEmpty(Gb.Controls[0].Text))
+  //   {
+  //    y_space_needed += nlead;
+  //   }
 
-     if (string.IsNullOrEmpty(Gb.Controls[0].Text))
-     {
-      y_space_needed += nlead;
-     }
+  //   if (string.IsNullOrEmpty(Gb.Controls[1].Text))
+  //   {
+  //    y_space_needed += nlead;
+  //   }
 
-     if (string.IsNullOrEmpty(Gb.Controls[1].Text))
-     {
-      y_space_needed += nlead;
-     }
+  //   if (currenty > label_header & !string.IsNullOrEmpty(Gb.Controls[0].Text))
+  //   {
+  //    y_space_needed += nlead / 2;
+  //   }
 
-     if (currenty > label_header & !string.IsNullOrEmpty(Gb.Controls[0].Text))
-     {
-      y_space_needed += nlead / 2;
-     }
+  //   if (ylimit - currenty < y_space_needed)
+  //   {
+  //    Output_label(ref pjob, ref Label, labelno);
+  //    currenty = New_label(ref Label, ref labelno);
+  //    if (labelno > labels_number)
+  //    {
+  //     break;
+  //    }
+  //   }
 
-     if (ylimit - currenty < y_space_needed)
-     {
-      Output_label(ref pjob, ref Label, labelno);
-      currenty = New_label(ref Label, ref labelno);
-      if (labelno > labels_number)
-      {
-       break;
-      }
-     }
+  //   if (currenty > label_header & !string.IsNullOrEmpty(Gb.Controls[0].Text))
+  //   {
+  //    currenty += nlead / 2;
+  //   }
 
-     if (currenty > label_header & !string.IsNullOrEmpty(Gb.Controls[0].Text))
-     {
-      currenty += nlead / 2;
-     }
+  //   stb = new StyledTextBuilder();
+  //   if (!string.IsNullOrEmpty(Gb.Controls[0].Text))
+  //   {
+  //    stb.Append(Gb.Controls[0].Text, bld_font, Colors.Black);
+  //    currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
+  //   }
+  //  }
 
-     stb = new StyledTextBuilder();
-     if (!string.IsNullOrEmpty(Gb.Controls[0].Text))
-     {
-      stb.Append(Gb.Controls[0].Text, bld_font, Colors.Black);
-      currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
-     }
-    }
+  //  if (!string.IsNullOrEmpty(Gb.Controls[1].Text))
+  //  {
+  //   lis = Gb.Controls[1].Text;
+  //   elines.Clear();
+  //   if ((lines_setting ?? "") == "Label")
+  //   {
+  //    lis = this.Adjust_lines(lis, "File");
+  //   }
 
-    if (!string.IsNullOrEmpty(Gb.Controls[1].Text))
-    {
-     lis = Gb.Controls[1].Text;
-     elines.Clear();
-     if ((lines_setting ?? "") == "Label")
-     {
-      lis = this.Adjust_lines(lis, "File");
-     }
+  //   lis = Adjust_lines(lis, "Label", elines);
+  //   li = Regex.Split(lis, @"\r\n|\n");
+  //   int lic = li.Count();
+  //   if (Max_rec[Bnum] > 0 & lic > Max_rec[Bnum])
+  //   {
+  //    lic = Max_rec[Bnum];
+  //    int iadj = 0;
+  //    foreach (KeyValuePair<int, int> kvp in elines)
+  //    {
+  //     if (kvp.Key <= lic)
+  //     {
+  //      iadj = iadj + kvp.Value;
+  //     }
+  //    }
 
-     lis = Adjust_lines(lis, "Label", elines);
-     li = Regex.Split(lis, @"\r\n|\n");
-     int lic = li.Count();
-     if (max_rec[Bnum] > 0 & lic > max_rec[Bnum])
-     {
-      lic = max_rec[Bnum];
-      int iadj = 0;
-      foreach (KeyValuePair<int, int> kvp in elines)
-      {
-       if (kvp.Key <= lic)
-       {
-        iadj = iadj + kvp.Value;
-       }
-      }
+  //    lic = lic + iadj;
+  //   }
 
-      lic = lic + iadj;
-     }
+  //   for (int i = 0; i <= li.Count() - 1; i++)
+  //   {
+  //    if (string.IsNullOrEmpty(li[i]))
+  //    {
+  //     currenty += nlead;
+  //    }
+  //    else
+  //    {
+  //     stb = new StyledTextBuilder();
+  //     stb.Append(li[i], reg_font, Colors.Black);
+  //     currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
+  //    }
 
-     for (int i = 0; i <= li.Count() - 1; i++)
-     {
-      if (string.IsNullOrEmpty(li[i]))
-      {
-       currenty += nlead;
-      }
-      else
-      {
-       stb = new StyledTextBuilder();
-       stb.Append(li[i], reg_font, Colors.Black);
-       currenty = Lab_field("L" + currenty.ToString(), stb, 317, currenty, ll, nlead);
-      }
+  //    if (ylimit - currenty < nlead)
+  //    {
+  //     Output_label(ref pjob, ref Label, labelno);
+  //     currenty = New_label(ref Label, ref labelno);
+  //     if (labelno > labels_number)
+  //     {
+  //      break;
+  //     }
+  //    }
+  //   }
+  //  }
+  // }
+  // if (currenty > label_header)
+  // {
+  //  Output_label(ref pjob, ref Label, labelno);
+  // }
 
-      if (ylimit - currenty < nlead)
-      {
-       Output_label(ref pjob, ref Label, labelno);
-       currenty = New_label(ref Label, ref labelno);
-       if (labelno > labels_number)
-       {
-        break;
-       }
-      }
-     }
-    }
-   }
-   if (currenty > label_header)
-   {
-    Output_label(ref pjob, ref Label, labelno);
-   }
-
-   if (!Preview)
-   {
-    pjob.Print();
-   }
-   else
-   {
-    pjob = null;
-   }
-  }
+  // if (!Preview)
+  // {
+  //  pjob.Print();
+  // }
+  // else
+  // {
+  //  pjob = null;
+  // }
+  //}
 
   private int Setcy(GroupBox gb)
   {
@@ -865,7 +849,7 @@ namespace Medical_Profile
    a1 = ath_blist.Find(p => p.num == bn);
    if (a1 is object)
    {
-    max_rec[a1.num] = a1.max_lines;
+    Max_rec[a1.num] = a1.max_lines;
     ctb.Value = a1.max_lines;
    }
 
@@ -897,7 +881,7 @@ namespace Medical_Profile
    var bi = new Blk_info() { num = blockno };
 
    blocks[blockno] = bi;
-   max_rec[blockno] = 0;
+   Max_rec[blockno] = 0;
    fieldsmr["MR" + blockno.ToString() + ":"] = blockno;
 
    obox = new GroupBox()
@@ -1073,6 +1057,7 @@ namespace Medical_Profile
 
    loading = true;
 
+
    if (run_timer)
    {
     Tgp.Visible = true;
@@ -1082,19 +1067,12 @@ namespace Medical_Profile
    DoubleBuffered = true;
    file_access = false;
    enck = new string(cv);
-
-
-
-   //var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile");
-
    drive_label_encoded = null;
    eval_encoded = null;
    ath_blist.Clear();
 
    if (Rkeyvals.ContainsKey("Version"))
     installed_version = (string)Rkeyvals["Version"];
-   // if (key != null)
-   // installed_version = key.GetValue("version", null).ToString();
 
 #if DEBUG
    if (!string.IsNullOrEmpty(Properties.Settings.Default.User_number))
@@ -1109,20 +1087,14 @@ namespace Medical_Profile
     if (Rkeyvals.ContainsKey("eval"))
      eval_encoded = (string)Rkeyvals["eval"];
 
-    //if (key != null)
-    //{
-    // eval_encoded = key.GetValue("eval", null)?.ToString();
+
     if (eval_encoded is object)
     {
      file_access = true;
     }
-    //}
 
     if (!file_access)
     {
-     //if (key != null)
-     // drive_label_encoded = key.GetValue("Label", null)?.ToString();
-
      if (Rkeyvals.ContainsKey("Label"))
       drive_label_encoded = (string)Rkeyvals["Label"];
 
@@ -1131,8 +1103,6 @@ namespace Medical_Profile
       using (Form f4 = new Formaik(cv))
       {
        f4.ShowDialog();
-
-       //eval_encoded = key.GetValue("eval", null)?.ToString(); ;
 
        using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile"))
        {
@@ -1259,56 +1229,45 @@ namespace Medical_Profile
    cm.Items.Add(Eti);
    GroupBox2.ContextMenuStrip = cm;
    points = 8;
-   reg_font = new FontInfo("Calibri", points, DYMO.Label.Framework.FontStyle.None);
-   rp1_font = new FontInfo("Calibri", points + 1, DYMO.Label.Framework.FontStyle.None);
-   bld_font = new FontInfo("Calibri", points, DYMO.Label.Framework.FontStyle.Bold);
-   bp1_font = new FontInfo("Calibri", points + 1, DYMO.Label.Framework.FontStyle.Bold);
-   itl_font = new FontInfo("Calibri Light Italic", points, DYMO.Label.Framework.FontStyle.Italic);
-   try
+   //reg_font = new FontInfo("Calibri", points, DYMO.Label.Framework.FontStyle.None);
+   //rp1_font = new FontInfo("Calibri", points + 1, DYMO.Label.Framework.FontStyle.None);
+   //bld_font = new FontInfo("Calibri", points, DYMO.Label.Framework.FontStyle.Bold);
+   //bp1_font = new FontInfo("Calibri", points + 1, DYMO.Label.Framework.FontStyle.Bold);
+   //itl_font = new FontInfo("Calibri Light Italic", points, DYMO.Label.Framework.FontStyle.Italic);
+   //try
+   //{
+   // Label = (DieCutLabel)Framework.Open("mpc1.label");
+   // foreach (string o in Label.ObjectNames)
+   // {
+   //  if (!string.IsNullOrEmpty(o))
+   //  {
+   //   lab1[o] = Label.GetObjectText(o);
+   //  }
+   // }
+   //}
+   //catch (Exception ex)
+   //{
+   // string S = Program.Format_exception(ex);
+
+   // FlexibleMessageBox.FONT = new Font("Calibri", 10, System.Drawing.FontStyle.Bold);
+   // FlexibleMessageBox.Show(S, "Exception Occured", MessageBoxButtons.OK, MessageBoxIcon.Error);
+   // MessageBox.Show(ex.Message);
+   // Application.Exit();
+   // return;
+   //}
+
+   IEnumerable<DymoSDK.Interfaces.IPrinter> Printersx = DymoPrinter.Instance.GetPrinters();
+
+   if (Printersx != null && Printersx.Count() > 0)
    {
-    Label = (DieCutLabel)Framework.Open("mpc1.label");
-    foreach (string o in Label.ObjectNames)
+    foreach (DymoSDK.Interfaces.IPrinter P in Printersx)
     {
-     if (!string.IsNullOrEmpty(o))
-     {
-      lab1[o] = Label.GetObjectText(o);
-     }
+     Printers.Items.Add(P.Name);
     }
-   }
-   catch (Exception ex)
-   {
-    string S = Program.Format_exception(ex);
 
-    FlexibleMessageBox.FONT = new Font("Calibri", 10, System.Drawing.FontStyle.Bold);
-    FlexibleMessageBox.Show(S, "Exception Occured", MessageBoxButtons.OK, MessageBoxIcon.Error);
-    MessageBox.Show(ex.Message);
-    Application.Exit();
-    return;
-   }
-
-   Printers.Items.Clear();
-   pnames = Framework.GetPrinters();
-   if (pnames != null && pnames.Count() > 0)
-   {
-    foreach (var p in pnames)
-     Printers.Items.Add(p.Name);
     if (Printers.Items.Count > 0)
     {
      Printers.SelectedIndex = 0;
-    }
-
-    printer = pnames.GetPrinterByName(Printers.SelectedItem.ToString());
-
-
-    if (printer is ILabelWriterPrinter)
-    {
-     labelWriterPrinter = (ILabelWriterPrinter)printer;
-     lprintparams = new LabelWriterPrintParams()
-     {
-      Copies = 1,
-      FlowDirection = DYMO.Label.Framework.FlowDirection.LeftToRight,
-      RollSelection = RollSelection.Auto
-     };
     }
    }
    else
@@ -1804,7 +1763,7 @@ namespace Medical_Profile
    TSnumud tsi = (TSnumud)sender;
    int tg1 = tsi.aml;
    int tgno = tsi.udl;
-   max_rec[Convert.ToInt32(tsi.Name)] = tsi.Value;
+   Max_rec[Convert.ToInt32(tsi.Name)] = tsi.Value;
    Redo_blocks(lines_setting);
    if (tsi.Value == 0)
    {
@@ -2039,17 +1998,17 @@ namespace Medical_Profile
     return bi.lines;
    }
 
-   if (max_rec[bn] <= 0 | bi.ll.Length <= max_rec[bn])
+   if (Max_rec[bn] <= 0 | bi.ll.Length <= Max_rec[bn])
    {
     return bi.lines;
    }
 
-   bx.Select(0, bi.ll[max_rec[bn]]);
+   bx.Select(0, bi.ll[Max_rec[bn]]);
    bx.SelectionBackColor = mp_backcolor;
    Application.DoEvents();
    bx.SelectionLength = 0;
    bx.Select(0, 0);
-   return max_rec[bn];
+   return Max_rec[bn];
   }
   private int Ath_setcolor(int bn)
   {
@@ -2071,12 +2030,12 @@ namespace Medical_Profile
    bx.SelectionBackColor = System.Drawing.Color.White;
    bx.Select(0, 0);
    hx.BackColor = System.Drawing.Color.White;
-   if (!max_rec.ContainsKey(bn))
+   if (!Max_rec.ContainsKey(bn))
    {
     return lines;
    }
 
-   if (max_rec[bn] <= 0 | ll.Length <= max_rec[bn])
+   if (Max_rec[bn] <= 0 | ll.Length <= Max_rec[bn])
    {
     return lines;
    }
@@ -2088,12 +2047,12 @@ namespace Medical_Profile
    }
 
    Application.DoEvents();
-   bx.Select(0, ll[max_rec[bn]]);
+   bx.Select(0, ll[Max_rec[bn]]);
    bx.SelectionBackColor = mp_backcolor;
    Application.DoEvents();
    bx.SelectionLength = 0;
    bx.Select(0, 0);
-   return max_rec[bn];
+   return Max_rec[bn];
   }
 
   private void Add_cm(string name, ContextMenuStrip cm, ToolStripMenuItem ts1, ToolStripMenuItem ts2)
@@ -2562,18 +2521,15 @@ namespace Medical_Profile
     using (var tbl = new TableLayoutPanel())
     {
      Bitmap i1;
-     Bitmap i2;
      fpr.Text = "Labels Preview";
-     Pnglablist.Clear();
      Preview = true;
-     Generate_Labels();
-     if (Pnglablist.Count < 1)
-     {
+     Generate_labels();
+     if (Labels.Count < 1)
       return;
-     }
      tbl.Name = "Panel_Table";
-     pccnt = Pnglablist.Count < 2 ? 1 : 2;
-     prcnt = (Pnglablist.Count + 1) / pccnt;
+
+     pccnt = Labels.Count < 2 ? 1 : 2;
+     prcnt = (Labels.Count + 1) / pccnt;
      tbl.RowCount = prcnt;
      tbl.ColumnCount = pccnt;
      tbl.Width = 504 * pccnt;
@@ -2585,7 +2541,7 @@ namespace Medical_Profile
       for (int j = 0; j <= pccnt - 1; j++)
       {
        int ind = i * pccnt + j;
-       if (ind > Pnglablist.Count - 1)
+       if (ind > Labels.Count - 1)
        {
         break;
        }
@@ -2598,13 +2554,13 @@ namespace Medical_Profile
         Left = 15,
         Top = 15,
         Name = "Picture",
+        SizeMode=PictureBoxSizeMode.CenterImage,
         Anchor = AnchorStyles.None
        };
-       using (var MS = new MemoryStream(Pnglablist[i * pccnt + j]))
+       using (var MS = new MemoryStream(Labels[i * pccnt + j].Preview))
        {
         i1 = (Bitmap)Image.FromStream(MS);
-        i2 = ResizeImage(i1, (int)(i1.Width / (double)2), (int)(i1.Height / (double)2));
-        pb.Image = i2;
+        pb.Image = i1;
        }
 
        pnl.Width = 504;
@@ -2757,16 +2713,7 @@ namespace Medical_Profile
   private void Printmenuitem_Click(object sender, EventArgs e)
   {
    Preview = false;
-
-   if (printer is ILabelWriterPrinter)
-   {
-    pjob = (PrintJob)printer.CreatePrintJob(lprintparams);
-   }
-   else
-   {
-    pjob = (PrintJob)printer.CreatePrintJob(printParams);
-   }
-   Generate_Labels();
+   Generate_labels();
   }
 
   private void Edit_Keypress(object sender, KeyPressEventArgs e)
@@ -3029,6 +2976,7 @@ namespace Medical_Profile
 
    np = Patient.Text.Split(new char[] { ',' });
    nl = Patient.Text.Split(new char[] { ' ' });
+
    if (np.Count() == 2)
    {
     lastname = np[0];

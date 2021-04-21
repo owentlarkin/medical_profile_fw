@@ -101,7 +101,7 @@ namespace Medical_Profile
   public Dictionary<string, int> fieldsmr = new Dictionary<string, int>();
   public Dictionary<string, string> lab1 = new Dictionary<string, string>();
   public Dictionary<string, string> labgb = new Dictionary<string, string>();
-  public Dictionary<int, int> max_rec = new Dictionary<int, int>();
+  public Dictionary<int, int> Max_rec = new Dictionary<int, int>();
   public Dictionary<string, Form3> f3s = new Dictionary<string, Form3>();
   public bool saved_type = false;
   public KeyValuePair<string, Dsave> Dsi = new KeyValuePair<string, Dsave>();

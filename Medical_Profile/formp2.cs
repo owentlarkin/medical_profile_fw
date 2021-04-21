@@ -33,10 +33,9 @@ namespace Medical_Profile
   public string printerName;
   public IPrinters pnames;
   public IPrinter printer;
-  public ILabelWriterPrinter labelWriterPrinter;
-  public ILabelWriterPrintParams lprintparams;
-  public IPrintParams printParams;
-  public PrintJob pjob;
+//  public ILabelWriterPrinter labelWriterPrinter;
+//  public ILabelWriterPrintParams lprintparams;
+//  public PrintJob pjob;
   public float name_length = 0.0F;
   public List<FileInfo> fi = new List<FileInfo>();
   public FontInfo nfnt = new FontInfo("Calibri", 12.0, DYMO.Label.Framework.FontStyle.Bold);
@@ -541,14 +540,14 @@ namespace Medical_Profile
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
    foreach (int k in blocks.Keys)
    {
-    max_rec[k] = 0;
+    Max_rec[k] = 0;
    }
 
    foreach (Ath_block b in ath_blist)
    {
     if (b.max_lines > 0)
     {
-     max_rec[b.num] = b.max_lines;
+     Max_rec[b.num] = b.max_lines;
     }
    }
 
@@ -720,6 +719,7 @@ namespace Medical_Profile
 
    Set_empgb();
    Data_altered = false;
+//   Generate_labels();
    return;
   }
 

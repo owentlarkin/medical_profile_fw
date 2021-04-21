@@ -50,29 +50,26 @@ namespace Medical_Profile
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 6725;
    string Token = Enc256.Encode(Key, Salt, Claims);
- //  using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-  // {
-    try
+   try
+   {
+    M1 = await Get_Data(Base, Token, Bpl);
+    //   M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
+    if (M1.status == 200)
     {
-     M1 = await Get_Data(Base, Token, Bpl);
-     //   M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
-     if (M1.status == 200)
-     {
-      Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
-     }
-     else
-     {
-      Dr.code = M1.status;
-      Dr.message = M1.message;
-     }
+     Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
     }
+    else
+    {
+     Dr.code = M1.status;
+     Dr.message = M1.message;
+    }
+   }
 #pragma warning disable CS0168 // Variable is declared but never used
-    catch (FlurlHttpException ex)
+   catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
-    {
-     MessageBox.Show(ex.Message);
-    }
- //  }
+   {
+    MessageBox.Show(ex.Message);
+   }
 
    return Dr;
   }
@@ -84,30 +81,26 @@ namespace Medical_Profile
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5184;
    string Token = Enc256.Encode(Key, Salt, Claims);
- //  using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
- //  {
-    try
+   try
+   {
+    M1 = await Get_Data(Base, Token, Bpl);
+    if (M1.status == 200)
     {
-     // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
-     M1 = await Get_Data(Base, Token, Bpl);
-     //  M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
-     if (M1.status == 200)
-     {
-      Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
-     }
-     else
-     {
-      Dr.code = M1.status;
-      Dr.message = M1.message;
-     }
+     Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
     }
+    else
+    {
+     Dr.code = M1.status;
+     Dr.message = M1.message;
+    }
+   }
 #pragma warning disable CS0168 // Variable is declared but never used
-    catch (FlurlHttpException ex)
+   catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
-    {
-     //    int i = 1;
-    }
- //  }
+   {
+    //    int i = 1;
+   }
+   //  }
 
    return Dr;
   }
@@ -119,30 +112,25 @@ namespace Medical_Profile
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5163;
    string Token = Enc256.Encode(Key, Salt, Claims);
- //  using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
- //  {
-    try
+   try
+   {
+    M1 = await Get_Data(Base, Token, Bpl);
+    if (M1.status == 200)
     {
-     // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
-     M1 = await Get_Data(Base, Token, Bpl);
-     //     M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
-     if (M1.status == 200)
-     {
-      Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
-     }
-     else
-     {
-      Dr.code = M1.status;
-      Dr.message = M1.message;
-     }
+     Dr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
     }
+    else
+    {
+     Dr.code = M1.status;
+     Dr.message = M1.message;
+    }
+   }
 #pragma warning disable CS0168 // Variable is declared but never used
-    catch (FlurlHttpException ex)
+   catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
-    {
-     //   int i = 1;
-    }
- //  }
+   {
+    //   int i = 1;
+   }
 
    return Dr;
   }
@@ -164,30 +152,25 @@ namespace Medical_Profile
 
    Bpl["Call_vector"] = 7943;
    string Token = Enc256.Encode(Key, Salt, Claims);
-  // using (var Cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-  // {
-    try
+   try
+   {
+    M1 = await Get_Data(Base, Token, Bpl);
+    if (M1.status == 200)
     {
-     // M1 = Await Cli.Request().PostJsonAsync(Bpl).ReceiveJson(Of Mret)()
-     M1 = await Get_Data(Base, Token, Bpl);
-     //   M1 = await Cli.Request().PostJsonAsync(Bpl).ReceiveJson<Mret>();
-     if (M1.status == 200)
-     {
-      Dvr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
-     }
-     else
-     {
-      Dvr.code = M1.status;
-      Dvr.message = M1.message;
-     }
+     Dvr = JsonConvert.DeserializeObject<Dsave_return>(M1.body);
     }
+    else
+    {
+     Dvr.code = M1.status;
+     Dvr.message = M1.message;
+    }
+   }
 #pragma warning disable CS0168 // Variable is declared but never used
-    catch (FlurlHttpException ex)
+   catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
-    {
-     //   int i = 1;
-    }
-  // }
+   {
+    //   int i = 1;
+   }
 
    return Dvr;
   }
@@ -197,12 +180,9 @@ namespace Medical_Profile
    var l2 = new Level2_Return();
    if (File.Exists("l2ret.json"))
    {
-    //  Mret m2 = null;
     using (var sr = new StreamReader("l2ret.json"))
     {
      string l2d = sr.ReadToEnd();
-     // l2d = l2d.Replace("\", String.Empty)
-     // m2 = JsonConvert.DeserializeObject(Of mret)(l2d)
      l2 = JsonConvert.DeserializeObject<Level2_Return>(l2d);
      return l2;
     }
@@ -212,30 +192,25 @@ namespace Medical_Profile
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 6000;
    string Token = Enc256.Encode(Key, Salt, Claims);
- //  using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-  // {
-    try
+   try
+   {
+    m1 = await Get_Data(Base, Token, bpl);
+    if (m1.status == 200)
     {
-     // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
-     m1 = await Get_Data(Base, Token, bpl);
-     //   m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
-     if (m1.status == 200)
-     {
-      l2 = JsonConvert.DeserializeObject<Level2_Return>(m1.body);
-     }
-     else
-     {
-      l2.code = m1.status;
-      l2.message = m1.message;
-     }
+     l2 = JsonConvert.DeserializeObject<Level2_Return>(m1.body);
     }
+    else
+    {
+     l2.code = m1.status;
+     l2.message = m1.message;
+    }
+   }
 #pragma warning disable CS0168 // Variable is declared but never used
-    catch (FlurlHttpException ex)
+   catch (FlurlHttpException ex)
 #pragma warning restore CS0168 // Variable is declared but never used
-    {
-     //   int i = 1;
-    }
-  // }
+   {
+    //   int i = 1;
+   }
 
    return l2;
   }
@@ -247,12 +222,7 @@ namespace Medical_Profile
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 4152;
    string Token = Enc256.Encode(Key, Salt, Claims);
- //  using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
-  // {
-    // m1 = Await cli.Request().PostJsonAsync(bpl).ReceiveJson(Of Mret)()
-    m1 = await Get_Data(Base, Token, bpl);
-    //  m1 = await cli.Request().PostJsonAsync(bpl).ReceiveJson<Mret>();
-//   }
+   m1 = await Get_Data(Base, Token, bpl);
 
    if (m1.status == 200)
    {
