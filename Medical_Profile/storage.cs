@@ -4,11 +4,14 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-
+using MPClabel;
+using Enc256;
 namespace Medical_Profile
 {
  public partial class Form1
  {
+  public MPClabel.ILabint Dlab = LabFactory.GetLab();
+  public Ienc256 Ede = EncFactory.GetEnc();
   public Font scr_font = new Font("Calibri", 10.25F, FontStyle.Regular);
   public Font scb_font = new Font("Calibri", 10.25F, FontStyle.Bold);
   public ErrorProvider pidep = new ErrorProvider();
@@ -40,8 +43,8 @@ namespace Medical_Profile
   public int minimum_blocks;
   public int Screen_width;
   public int Screen_height;
-  public Size Form_size;
-  public Size Form_area;
+  public System.Drawing.Size Form_size;
+  public System.Drawing.Size Form_area;
 
   public Panel Pn;
   public Panel Pe;
@@ -80,7 +83,7 @@ namespace Medical_Profile
 
   public Dictionary<int, Blk_info> blocks = new Dictionary<int, Blk_info>();
   public Dictionary<string, bool> bfont = new Dictionary<string, bool>();
-  public Color mp_backcolor = Color.FromArgb(126, 255, 255);
+  public System.Drawing.Color mp_backcolor = System.Drawing.Color.FromArgb(126, 255, 255);
   public string drive_label_encoded = null;
   public string eval_encoded = null;
   public bool file_access = false;

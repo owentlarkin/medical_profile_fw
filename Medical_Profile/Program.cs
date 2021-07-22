@@ -1,5 +1,4 @@
-﻿using Enc;
-using JR.Utils.GUI.Forms;
+﻿using JR.Utils.GUI.Forms;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Dymodkl;
 
 namespace Medical_Profile
 {
@@ -34,8 +32,6 @@ namespace Medical_Profile
    Application.ThreadException += new ThreadExceptionEventHandler(UIException);
 
    Mpf = new Form1();
-
-   Dds.Init();
 
    Application.Run(Mpf);
   }
@@ -131,7 +127,7 @@ namespace Medical_Profile
    var claims = Mpf.Gen_Claims();
    Dsave_return Dr;
    aws_body.Clear();
-   aws_body["ukey"] = Enc256.Encrypt(Mpf.cid + Mpf.Mpck.Dlab, Mpf.cid + Mpf.Mpck.Dlab, Mpf.Mpck.Iterations);
+   aws_body["ukey"] = Mpf.Ede.Encrypt(Mpf.cid + Mpf.Mpck.Dlab, Mpf.cid + Mpf.Mpck.Dlab, Mpf.Mpck.Iterations);
    aws_body["wrtim"] = Wrtim;
    aws_body["exception"] = Ex;
    Application.UseWaitCursor = true;

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using global::JWT;
 using global::Microsoft.Win32;
-using Enc;
 
 namespace Medical_Profile
 {
  public partial class Formaik
  {
+ private static Enc256.Ienc256 Ede = Enc256.EncFactory.GetEnc();
   public Formaik(char[] cv)
   {
    base.Load += Formaik_Load;
@@ -49,8 +49,8 @@ namespace Medical_Profile
 
     if (Key.Text is object && !((Key.Text ?? "") == (string.Empty ?? "")))
     {
-     key_encrypted = Enc256.Encrypt(Key.Text, Enc256.Scramble(keys));
-     salt = Enc256.Getsalt(key_encrypted);
+     key_encrypted = Ede.Encrypt(Key.Text, Ede.Scramble(keys));
+     salt = Ede.Getsalt(key_encrypted);
 
      var payload = new Dictionary<string, object>() { { "aud", "http://medicalprofilecard.com" }, { "exp", ew.ToUnixTimeSeconds() }, { "register", key_encrypted } };
 
@@ -63,7 +63,7 @@ namespace Medical_Profile
      Application.UseWaitCursor = true;
      mcd = await Aws.Register_aysnc(installation_url, keys, salt, payload, aws_body);
      Application.UseWaitCursor = false;
-     mtyenc = Enc256.Decrypt(mcd.eval, Enc256.Scramble(keys), 18926);
+     mtyenc = Ede.Decrypt(mcd.eval, Ede.Scramble(keys), 18926);
 
      if (mtyenc is object)
      {

@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using Flurl.Http;
 using Newtonsoft.Json;
 using System.Windows.Forms;
-using Enc;
 using System;
+using Enc256;
 
 namespace Medical_Profile
 {
  internal static class Aws
  {
+ static Ienc256 Ede = EncFactory.GetEnc();
   public async static Task<Level1_Return> Get_Level1_aysnc(string Base, string Key, string Salt, Dictionary<string, object> Claims, Dictionary<string, object> bp)
   {
    var l1 = new Level1_Return();
@@ -27,7 +28,7 @@ namespace Medical_Profile
    Mret m1;
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 5000;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
    m1 = await Get_Data(Base, Token, bpl);
    if (m1.status == 200)
    {
@@ -49,7 +50,7 @@ namespace Medical_Profile
    Mret M1 = null;
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 6725;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
    try
    {
     M1 = await Get_Data(Base, Token, Bpl);
@@ -80,7 +81,7 @@ namespace Medical_Profile
    Mret M1 = null;
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5184;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
    try
    {
     M1 = await Get_Data(Base, Token, Bpl);
@@ -111,7 +112,7 @@ namespace Medical_Profile
    Mret M1 = null;
    var Bpl = new Dictionary<string, object>(bp);
    Bpl["Call_vector"] = 5163;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
    try
    {
     M1 = await Get_Data(Base, Token, Bpl);
@@ -151,7 +152,7 @@ namespace Medical_Profile
    }
 
    Bpl["Call_vector"] = 7943;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
    try
    {
     M1 = await Get_Data(Base, Token, Bpl);
@@ -191,7 +192,7 @@ namespace Medical_Profile
    Mret m1 = null;
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 6000;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
    try
    {
     m1 = await Get_Data(Base, Token, bpl);
@@ -221,7 +222,7 @@ namespace Medical_Profile
    Mret m1 = null;
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 4152;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
    m1 = await Get_Data(Base, Token, bpl);
 
    if (m1.status == 200)
@@ -237,7 +238,7 @@ namespace Medical_Profile
    return Rv;
   }
 
-  public static async Task<Mret> Get_Data(string Base, string Token, Dictionary<string, object> Bpl)
+  internal static async Task<Mret> Get_Data(string Base, string Token, Dictionary<string, object> Bpl)
   {
    Mret m1 = null;
    using (var cli = new FlurlClient(Base).WithHeader("X-Auth", Token))
@@ -260,7 +261,7 @@ namespace Medical_Profile
    Mret m1 = null;
    var bpl = new Dictionary<string, object>(bp);
    bpl["Call_vector"] = 4162;
-   string Token = Enc256.Encode(Key, Salt, Claims);
+   string Token = Ede.Encode(Key, Salt, Claims);
 
    m1 = await Get_Data(Base, Token, bpl);
 

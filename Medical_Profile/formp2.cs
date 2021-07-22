@@ -11,13 +11,17 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Enc;
+using global::Amazon;
+using global::Amazon.DynamoDBv2;
+using global::Amazon.DynamoDBv2.DocumentModel;
+using JWT;
+using Microsoft.Win32;
 
 namespace Medical_Profile
 {
  public partial class Form1
  {
-  private DieCutLabel Label;
+  //private DieCutLabel Label;
   private StyledTextBuilder stb = new StyledTextBuilder();
   public StyledTextBuilder htb = new StyledTextBuilder();
   public StyledTextBlock lt;
@@ -33,16 +37,98 @@ namespace Medical_Profile
   public string printerName;
   public IPrinters pnames;
   public IPrinter printer;
-//  public ILabelWriterPrinter labelWriterPrinter;
-//  public ILabelWriterPrintParams lprintparams;
-//  public PrintJob pjob;
   public float name_length = 0.0F;
   public List<FileInfo> fi = new List<FileInfo>();
   public FontInfo nfnt = new FontInfo("Calibri", 12.0, DYMO.Label.Framework.FontStyle.Bold);
   public FontInfo lfnt = new FontInfo("Calibri", 9.0, DYMO.Label.Framework.FontStyle.Bold);
   public string flsort = "Date";
   public string enck = null;
-  public string read_patient;  
+  public string read_patient;
+
+  public List<Byte[]> Call_Generate(bool Print_flag=false)
+  {
+   List<string> B = null;
+   string Phone_number = null;
+   string P1 = @"(\(??\d\d\d\)??[\s|-]\d\d\d-\d\d\d\d)";
+   string P2 = @"(\d\d\d-\d\d\d\d)";
+   Match M1;
+
+   Dlab.Patient = Patient.Text;
+
+   Dlab.Phone = Phone.Text ?? string.Empty;
+
+   Dlab.Address.AddRange(address.Lines);
+
+   Dlab.DOB = DOB.Text ?? string.Empty;
+
+   string dname = priph.Text;
+
+   if (prv_combo.Items.Count > 0)
+    dname = prv_combo.Text;
+
+   if (!string.IsNullOrEmpty(dname))
+   {
+    Dlab.PPtitle = lab1["priph_title:"];
+
+    Phone_number = string.Empty;
+    M1 = Regex.Match(dname, P1);
+    if (M1.Success)
+    {
+     Phone_number = M1.Value;
+     dname = dname.Replace(Phone_number, string.Empty);
+    }
+
+    if (!M1.Success)
+    {
+     M1 = Regex.Match(dname, P2);
+     if (M1.Success)
+     {
+      Phone_number = M1.Value;
+      dname = dname.Replace(Phone_number, string.Empty);
+     }
+    }
+
+    if (!string.IsNullOrEmpty(Phone_number))
+    {
+     Dlab.PPphone = Phone_number;
+    }
+
+    Dlab.PPname = dname;
+   }
+
+   Dlab.Insurance = ins.Text ?? string.Empty;
+
+   if (lab1.ContainsKey("secph:"))
+   {
+    Dlab.SPtitle = lab1["secph_title:"];
+    Dlab.SPname = secph.Text;
+   }
+
+   Dlab.Econtact = econtact.Text ?? string.Empty;
+
+   Dlab.Printer = Printers.SelectedItem.ToString();
+
+   foreach (KeyValuePair<int, string> K in bl_used)
+   {
+    int Bnum = K.Key;
+    GroupBox Gb = Grpblocks[Bnum];
+    B = new List<string>();
+
+    if (string.IsNullOrEmpty(Gb.Controls[0].Text))
+     B.Add(string.Empty);
+    else
+     B.Add(Gb.Controls[0].Text);
+
+    RichTextBox Rb = (RichTextBox)Gb.Controls[1];
+
+    if (Rb.Lines.Length > 0)
+     B.AddRange(Rb.Lines);
+
+    Dlab.Blocks.Add(B);
+   }
+
+   return Dlab.Generate(6,Print_flag);
+  }
   public bool Check_altered()
   {
    DialogResult res;
@@ -106,13 +192,13 @@ namespace Medical_Profile
    {
     case 1:
      {
-      ds.Name = Enc256.Decrypt(ds.Skey, Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
+      ds.Name = Ede.Decrypt(ds.Skey, Ede.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
       break;
      }
 
     default:
      {
-      ds.Name = Enc256.Decrypt(ds.Skey, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+      ds.Name = Ede.Decrypt(ds.Skey, Ede.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
       break;
      }
    }
@@ -186,7 +272,7 @@ namespace Medical_Profile
      {
       case 1:
        {
-        dec_name = Enc256.Decrypt(d.Skey, Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
+        dec_name = Ede.Decrypt(d.Skey, Ede.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
         if (string.IsNullOrEmpty(dec_name))
         {
          d.Name = "Unknown_" + (string.IsNullOrEmpty(d.lwtim) ? d.wrtim : d.lwtim);
@@ -196,13 +282,13 @@ namespace Medical_Profile
         {
          d.Name = dec_name;
         }
-
+        
         break;
        }
 
       default:
        {
-        dec_name = Enc256.Decrypt(d.Skey, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+        dec_name = Ede.Decrypt(d.Skey, Ede.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
         if (string.IsNullOrEmpty(dec_name))
         {
          d.Name = "Unknown_" + (string.IsNullOrEmpty(d.lwtim) ? d.wrtim : d.lwtim);
@@ -268,7 +354,163 @@ namespace Medical_Profile
     Dsbox.Visible = false;
    }
   }
+  private string Handle_file(string eval)
+  {
+   MPC_type mty = null;
+   string rjson = Ede.Decrypt(eval, enck, 17531);
+   if (string.IsNullOrEmpty(rjson))
+   {
+    return "1";
+   }
 
+   mty = JsonConvert.DeserializeObject<MPC_type>(rjson);
+
+   if (mty == null)
+    return "1";
+
+   if (string.IsNullOrEmpty(mty.F1))
+    return "1";
+
+   rjson = Ede.Decrypt(mty.F1, enck, mty.Akey);
+
+   if (string.IsNullOrEmpty(rjson))
+    return "1";
+
+   Mpck = JsonConvert.DeserializeObject<MPC_key>(rjson);
+
+   if (Mpck == null)
+    return "1";
+
+   if (!string.IsNullOrEmpty(mty.Akey))
+   {
+    drive_label = mty.Akey;
+   }
+
+   if (!string.IsNullOrEmpty(mty.F1))
+   {
+    rjson = Ede.Decrypt(mty.F1, enck, mty.Akey);
+    if (rjson is null)
+    {
+     MessageBox.Show("Key file is incorrect.", "Error", MessageBoxButtons.OK);
+     Application.Exit();
+    }
+
+    Mpck = JsonConvert.DeserializeObject<MPC_key>(rjson);
+   }
+
+   return "0";
+  }
+
+  private string Set_key(string s1, string s2)
+  {
+   int v1 = 0;
+   for (int i = 3, loopTo = s2.Length - 1; i <= loopTo; i++)
+    v1 += Convert.ToInt32(s2.Substring(i, 1));
+   int insert_loc = v1 % (s2.Length - 4);
+   return s1.Substring(0, insert_loc) + s2 + s1.Substring(insert_loc);
+  }
+
+#if DEBUG
+  private int Handle_testmode(string un)
+  {
+   MPC_User mpu;
+   string ds;
+   Document item;
+   Table table;
+   using (var client = new AmazonDynamoDBClient(RegionEndpoint.USEast2))
+   {
+    table = Table.LoadTable(client, "mpc_users");
+    item = table.GetItem(Convert.ToInt32(un));
+    ds = item.ToJsonPretty();
+    mpu = JsonConvert.DeserializeObject<MPC_User>(ds);
+   }
+
+   Mpck = new MPC_key()
+   {
+    Url = mpu.Url,
+    Mkey = mpu.Mkey,
+    Salt = mpu.Salt,
+    Email = mpu.Email,
+    Dlab = mpu.Disk_Label,
+    Secret = mpu.Secret1,
+    Iterations = mpu.Iterations,
+    Blocklist = mpu.Blocklist,
+    K1 = mpu.K1,
+    Minimum_blocks = mpu.Minimum_blocks,
+    Sec_visible = Convert.ToBoolean(mpu.Sec_visible),
+    Sptitle = mpu.Sptitle,
+    Version = mpu.Version
+   };
+
+   User_Name = mpu.UserName;
+   Machine_Name = mpu.MachineName;
+   cid = mpu.cid;
+   drive_label = mpu.Disk_Label;
+   file_access = true;
+   return 0;
+  }
+#endif
+  private int Handle_usb(string dle)
+  {
+   string fs;
+   string it;
+   string d1 = null;
+   var drivesrem = DriveInfo.GetDrives().Where(drive => drive.DriveType == DriveType.Removable).ToArray();
+   foreach (DriveInfo d in drivesrem)
+   {
+    if (d.VolumeLabel.StartsWith("MPC"))
+    {
+     d1 = Ede.Decrypt(dle, enck, d.VolumeLabel);
+     if (d1 is object && (d1 ?? "") == (d.VolumeLabel ?? ""))
+     {
+      it = d.VolumeLabel.Substring(3);
+      USB_Fname = d.Name + "F" + it + ".fil";
+      drive_label = d.VolumeLabel;
+     }
+    }
+   }
+
+   if (USB_Fname is object)
+   {
+    if (File.Exists(USB_Fname))
+    {
+     try
+     {
+      USB_Ftime = File.GetLastWriteTimeUtc(USB_Fname);
+      using (var sr = new StreamReader(USB_Fname))
+      {
+       fs = sr.ReadToEnd();
+       string rjson = Ede.Decrypt(fs, enck, drive_label);
+       if (rjson is null)
+       {
+        MessageBox.Show("Key file is incorrect.", "Error", MessageBoxButtons.OK);
+        Application.Exit();
+       }
+
+       Mpck = JsonConvert.DeserializeObject<MPC_key>(rjson);
+      }
+     }
+     catch (Exception ex)
+     {
+      Console.WriteLine("Key file could not be read:");
+      Console.WriteLine(ex.Message);
+      return 1;
+     }
+    }
+    else
+    {
+     MessageBox.Show("Unable to find the key file.", "Error", MessageBoxButtons.OK);
+     return 1;
+    }
+   }
+   else
+   {
+    MessageBox.Show("Unable to find the usb key drive.", "Error", MessageBoxButtons.OK);
+    return 1;
+   }
+
+   return 0;
+  }
   public void Load_Department(Level1_Return l1)
   {
    Department.Enabled = false;
@@ -400,26 +642,26 @@ namespace Medical_Profile
 
    aws_body.Clear();
    js = JsonConvert.SerializeObject(Sblk, Formatting.Indented);
-   aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+   aws_body["skey"] = Ede.Encrypt(Sblk.Patient, Ede.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
    var switchExpr = save_ver;
    switch (switchExpr)
    {
     case 1:
      {
-      jse = Enc256.Encrypt(js, Enc256.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
-      aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
+      jse = Ede.Encrypt(js, Ede.Iterscramble(cid), Convert.ToInt32(Mpck.Iterations % 10 + 2));
+      aws_body["skey"] = Ede.Encrypt(Sblk.Patient, Ede.Iterscramble(cid + Mpck.Dlab), Mpck.Iterations % 10 + 2);
       break;
      }
 
     default:
      {
-      jse = Enc256.Encrypt(js, Enc256.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
-      aws_body["skey"] = Enc256.Encrypt(Sblk.Patient, Enc256.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
+      jse = Ede.Encrypt(js, Ede.Iterscramble(cid, Mpck.Iterations), Convert.ToInt32(Mpck.Iterations / (double)3));
+      aws_body["skey"] = Ede.Encrypt(Sblk.Patient, Ede.Iterscramble(cid + Mpck.Dlab, Mpck.Iterations));
       break;
      }
    }
 
-   aws_body["ukey"] = Enc256.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
+   aws_body["ukey"] = Ede.Encrypt(cid + Mpck.Dlab, cid + Mpck.Dlab, Mpck.Iterations);
    if (saved_type)
    {
     if (string.IsNullOrEmpty(Ds.lwtim))
@@ -917,7 +1159,7 @@ namespace Medical_Profile
     }
     Panels_delete();
 
-    Reset_labels();
+ //   Reset_labels();
 
     Scsiz(Width, Originaly);
 
@@ -942,6 +1184,860 @@ namespace Medical_Profile
    }
 
    return sl;
+  }
+  private void Set_ro(Control ctrl)
+  {
+   TextBox tb;
+   RichTextBox rb;
+   if (ctrl is TextBox)
+   {
+    tb = (TextBox)ctrl;
+    if ((Editmenuitem.Text ?? "") == "Edit")
+    {
+     tb.ReadOnly = true;
+     tb.BackColor = System.Drawing.Color.White;
+    }
+    else
+    {
+     tb.ReadOnly = false;
+    }
+   }
+
+   if (ctrl is RichTextBox)
+   {
+    rb = (RichTextBox)ctrl;
+    if ((Editmenuitem.Text ?? "") == "Edit")
+    {
+     rb.ReadOnly = true;
+     rb.BackColor = System.Drawing.Color.White;
+    }
+    else
+    {
+     rb.ReadOnly = false;
+    }
+   }
+  }
+
+  private void Reset_color(int bn)
+  {
+   RichTextBox bx = null;
+   TextBox tb;
+   Blk_info bi = null;
+   tb = (TextBox)Grpblocks[bn].Controls[0];
+   bx = (RichTextBox)Grpblocks[bn].Controls[1];
+   bi = blocks[bn];
+   bx.SelectAll();
+   bx.SelectionBackColor = System.Drawing.Color.White;
+   bx.Select(0, 0);
+   tb.BackColor = System.Drawing.Color.White;
+   bi.hv = default;
+   bi.lv = default;
+   bi.lines = bx.Lines.Length;
+  }
+
+  private int Fe_setcolor(int bn)
+  {
+   RichTextBox bx = null;
+   Blk_info bi = null;
+   bx = (RichTextBox)Grpblocks[bn].Controls[1];
+   bi = blocks[bn];
+   if (!gpn.ContainsKey(bn))
+   {
+    return bi.lines;
+   }
+
+   if (Max_rec[bn] <= 0 | bi.ll.Length <= Max_rec[bn])
+   {
+    return bi.lines;
+   }
+
+   bx.Select(0, bi.ll[Max_rec[bn]]);
+   bx.SelectionBackColor = mp_backcolor;
+   Application.DoEvents();
+   bx.SelectionLength = 0;
+   bx.Select(0, 0);
+   return Max_rec[bn];
+  }
+  private int Ath_setcolor(int bn)
+  {
+   int ln = 0;
+   int lines = default;
+   int[] ll = null;
+   TextBox hx = null;
+   RichTextBox bx = null;
+   hx = (TextBox)Grpblocks[bn].Controls[0];
+   bx = (RichTextBox)Grpblocks[bn].Controls[1];
+   ll = new int[bx.Lines.Length + 1];
+   lines = bx.Lines.Length;
+   if (!gpn.ContainsKey(bn))
+   {
+    return lines;
+   }
+
+   bx.SelectAll();
+   bx.SelectionBackColor = System.Drawing.Color.White;
+   bx.Select(0, 0);
+   hx.BackColor = System.Drawing.Color.White;
+   if (!Max_rec.ContainsKey(bn))
+   {
+    return lines;
+   }
+
+   if (Max_rec[bn] <= 0 | ll.Length <= Max_rec[bn])
+   {
+    return lines;
+   }
+
+   for (int i = 0, loopTo = lines - 1; i <= loopTo; i += 1)
+   {
+    ll[i] = ln;
+    ln = ln + bx.Lines[i].Length + 1;
+   }
+
+   Application.DoEvents();
+   bx.Select(0, ll[Max_rec[bn]]);
+   bx.SelectionBackColor = mp_backcolor;
+   Application.DoEvents();
+   bx.SelectionLength = 0;
+   bx.Select(0, 0);
+   return Max_rec[bn];
+  }
+
+  private void Add_cm(string name, ContextMenuStrip cm, ToolStripMenuItem ts1, ToolStripMenuItem ts2)
+  {
+   ts1 = new ToolStripMenuItem()
+   {
+    Name = "Block" + name,
+    Text = "Show " + name,
+    Tag = name
+   };
+   ts1.Click += Load_block_click;
+   ts2 = new ToolStripMenuItem()
+   {
+    Name = "Block" + name,
+    Text = "Show " + name,
+    Tag = name
+   };
+   ts2.Click += Load_block_click;
+   cm.Items.Add(ts2);
+  }
+
+  private void Set_empgb(bool res_endpoints = false)
+  {
+   if (Pe == null)
+    return;
+
+   if (bl_used.Count == 0)
+    return;
+
+   GroupBox gb = null;
+   GroupBox lb = null;
+   GroupBox gb3 = null;
+
+   Form_Bounds = Bounds;
+
+   Size Cs = ClientSize;
+   Size Fs = Size;
+
+   if (Vsm)
+   {
+    Control c = Pe;
+    var rect = c.RectangleToScreen(c.ClientRectangle);
+    while (c != null)
+    {
+     rect = Rectangle.Intersect(rect, c.RectangleToScreen(c.ClientRectangle));
+     c = c.Parent;
+    }
+    rect = Pe.RectangleToClient(rect);
+
+    Sb = new VScrollBar()
+    {
+     Minimum = 0,
+     Maximum = Pn.Height - rect.Height + 2 * Ymargin
+    };
+
+    if (Vertical_Scroll_Position >= Sb.Minimum && Vertical_Scroll_Position <= Sb.Maximum)
+    {
+     Sb.Value = Vertical_Scroll_Position;
+    }
+
+    if (Sb.Value != 0)
+    {
+     Pn.Top = -Sb.Value;
+    }
+    Sb.ValueChanged += Sb_changed;
+    Pn.Top = -Sb.Value;
+    Pn.SizeChanged += Pn_sizechanged;
+    int M1 = Cs.Width - Pe.Width;
+
+    if (Original_Margin == -1)
+    {
+     Original_Margin = M1;
+    }
+
+    if (M1 < Sb.Width)
+    {
+     M1 = Sb.Width - M1;
+     Set_Size(Width += M1, Height);
+    }
+
+    Pe.Size = new Size(Pe.Width += Sb.Width, Pe.Height);
+    Pe.Controls.Add(Sb);
+    Sb.Location = new Point(Pn.Width, 0);
+    Sb.Size = new Size(Sb.Width, rect.Height);
+    Sb.Visible = true;
+   }
+
+   var cm = new ContextMenuStrip();
+
+   ToolStripMenuItem ts1 = null;
+   ToolStripMenuItem ts2 = null;
+
+   int pnxstart = 0;
+   int pnystart = 0;
+   int pnxsize = 0;
+   int pnysize = 0;
+
+   var bmni = new List<ToolStripMenuItem>();
+
+   bmni.Clear();
+
+   if (emppn is object)
+   {
+    Pn.Controls.Remove(emppn);
+    emppn.Dispose();
+   }
+
+   emppn = null;
+
+   gb3 = Grpblocks[3];
+
+   if (bl_used.Count % 3 != 0)
+   {
+    lb = Grpblocks[bl_used.Getlkey()];
+    emppn = new Panel() { Name = "emppn" };
+    pnxstart = lb.Location.X + lb.Width + 1;
+    if (bl_used.Count < 3)
+    {
+     pnystart = lb.Location.Y - 2 * Ymargin + 1;
+     gb = Grpblocks[3];
+    }
+    else
+    {
+     gb = Grpblocks[bl_used.Count / 3 * 3];
+     pnystart = gb.Location.Y + gb.Height + 1;
+    }
+
+    pnxsize = gb.Location.X + gb.Width - pnxstart;
+    pnysize = lb.Location.Y + lb.Height - pnystart;
+    emppn.Location = new Point(pnxstart, pnystart);
+    emppn.Size = new Size(pnxsize, pnysize);
+   }
+
+   foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
+   {
+    var b = k.Value;
+
+    if (b.State == (int)Load_state.not_loaded | b.State == (int)Load_state.not_loaded_byc | b.State == (int)Load_state.not_in_use)
+    {
+     Add_cm(k.Value.header, cm, ts1, ts2);
+     continue;
+    }
+
+    if (string.IsNullOrEmpty(Grpblocks[b.Num].Controls[1].Text))
+    {
+     continue;
+    }
+   }
+
+   if (emppn is object)
+   {
+    emppn.ContextMenuStrip = cm;
+    Pn.Controls.Add(emppn);
+   }
+
+   if (res_endpoints)
+   {
+    var tbiu = new System.Collections.Specialized.StringCollection();
+    foreach (KeyValuePair<string, Blk_entry> k in bl_loaded)
+    {
+     if (k.Value.State != (int)Load_state.not_loaded)
+     {
+      tbiu.Add(k.Value.header);
+     }
+    }
+
+    if (tbiu.Count != Endpoints_in_use.Count)
+    {
+     Properties.Settings.Default.endpoints = new System.Collections.Specialized.StringCollection();
+     foreach (string s in tbiu)
+      Properties.Settings.Default.endpoints.Add(s);
+     Properties.Settings.Default.Save();
+    }
+
+    Update();
+   }
+  }
+
+  private void Panels_delete()
+  {
+   if (Pn != null)
+   {
+    Pn.Controls.Clear();
+   }
+
+   if (Pe != null && Pe.Controls.Contains(Pn))
+   {
+    Pe.Controls.Remove(Pn);
+   }
+   Controls.Remove(Pe);
+  }
+
+  private Rectangle Panels_create(int Petop)
+  {
+   GroupBox B3 = Grpblocks[3];
+   GroupBox Bl = Grpblocks[bl_used.Getlkey()];
+
+   int Pn_width = B3.Left + B3.Width/* + Xmargin*/;
+   int Pn_height = Bl.Top + Bl.Height/* + Ymargin*/;
+
+   Pn = new Panel()
+   {
+    Name = "PnPanel",
+    Location = new Point(0, 0),
+    Width = Pn_width,
+    Height = Pn_height,
+    Padding = new Padding(0, 0, 0, 0),
+    Margin = new Padding(0, 0, 0, 0),
+    AutoSize = false,
+    AutoScroll = false
+   };
+
+   foreach (KeyValuePair<int, string> s in bl_used)
+   {
+    Pn.Controls.Add(Grpblocks[s.Key]);
+   }
+
+   Pe = new Panel()
+   {
+    Name = "PePanel",
+    Padding = new Padding(0, 0, 20, 0),
+    Location = new Point(0, Petop),
+    Width = Pn.Width/* += Xmargin*/,
+    Height = Pn.Height/* += Ymargin*/,
+    AutoSize = false,
+    AutoScroll = false
+   };
+
+   Pe.Controls.Add(Pn);
+
+   Controls.Add(Pe);
+
+   return Pe.Bounds;
+  }
+
+  private void Scsiz(int Width, int DHeight = -1)
+  {
+   int F_width = 0;
+   int F_height = 0;
+   int F_left = 0;
+   int F_top = 0;
+
+   if (DHeight == ClientSize.Height)
+    return;
+
+   Rectangle Form_Bounds = Bounds;
+   Rectangle Screen_Area = Screen.PrimaryScreen.WorkingArea;
+
+   Size Client_Size = ClientSize;
+   Size Fs = Size;
+
+   if (Pe != null)
+   {
+    Panels_delete();
+   }
+
+   if (Form_size.IsEmpty)
+   {
+    Form_size = Fs;
+    Form_area = Client_Size;
+   }
+
+   W_delta = Fs.Width - Client_Size.Width;
+   H_delta = Fs.Height - Client_Size.Height;
+
+   if (DHeight != -1)
+    F_height = DHeight + H_delta;
+   else
+    F_height = Originaly + H_delta;
+
+   F_width = Fs.Width;
+   F_left = Form_Bounds.X;
+   F_top = Form_Bounds.Y;
+   Vsm = false;
+
+   if (bl_used.Count > 0)
+   {
+    Rectangle pb = Panels_create(Ystart + 2 * Ymargin);
+
+    F_height = Pe.Top + Pe.Height + H_delta + 2 * Ymargin;
+   }
+
+   if (F_height == Form_Height)
+    Form_Height = -1;
+
+   if ((Form_Height != -1) && (F_height > Form_Height))
+   {
+    F_top = 20;
+    F_height = Form_Height;
+    Vsm = true;
+   }
+   else if (F_height > Screen_Area.Height)
+   {
+    F_top = 20;
+    Form_Height = Screen_Area.Height;
+    F_height = Form_Height;
+    Vsm = true;
+   }
+   else
+   {
+    F_top = ((Screen_Area.Height / 2) - (F_height / 2)) / 2;
+    Vsm = false;
+    Vertical_Scroll_Position = 0;
+   }
+
+   F_left = (Screen_Area.Width / 2) - (Fs.Width / 2);
+
+   StartPosition = FormStartPosition.Manual;
+
+   Location = new Point(F_left, F_top);
+
+   Set_Size(Fs.Width, F_height);
+
+   Update();
+  }
+
+  private void Move_blk(int fbn, int tbn)
+  {
+   GroupBox gbf = Grpblocks[fbn];
+   GroupBox gbt = Grpblocks[tbn];
+   gbt.Controls[0].Tag = gbf.Controls[0].Tag;
+   gbt.Enabled = true;
+   if (bl_loaded.ContainsKey(gbt.Controls[0].Tag.ToString()))
+   {
+    bl_loaded[gbt.Controls[0].Tag.ToString()].Num = tbn;
+    bl_loaded[gbt.Controls[0].Tag.ToString()].State = (int)Load_state.loaded;
+   }
+
+   gbt.Controls[0].Enabled = true;
+   gbt.Controls[1].Enabled = true;
+   labgb[gph[tbn]] = labgb[gph[fbn]];
+   labgb[gpb[tbn]] = labgb[gpb[fbn]];
+   gbt.Controls[0].Text = gbf.Controls[0].Text;
+   gbt.Controls[1].Text = gbf.Controls[1].Text;
+   gbf.Controls[0].Tag = gbf.Tag;
+   gbf.Controls[0].Text = string.Empty;
+   gbf.Controls[1].Text = string.Empty;
+   gbf.Controls[0].Enabled = false;
+   gbf.Controls[1].Enabled = false;
+   Set_ro(gbt.Controls[0]);
+   Set_ro(gbt.Controls[1]);
+  }
+
+  private int Setcy(GroupBox gb)
+  {
+   int br = gb.Location.Y + gb.Height + 76;
+   int cy = currenty;
+   if (br > cy)
+   {
+    cy = br;
+   }
+
+   return cy;
+  }
+
+  private void Setupdn(ref ContextMenuStrip cm, int bn, int ni)
+  {
+   var ctb = new TSnumud();
+   Ath_block a1 = null;
+   var tsi = new ToolStripMenuItem();
+   var tss = new ToolStripSeparator();
+   var tsl = new ToolStripLabel("Lines to print");
+   tsi.Text = "Activate max lines";
+   tsi.Name = bn.ToString();
+   tsi.Tag = ni + 3;
+   tsi.Click += Cud_activate;
+   cm.Items.Add(tsi);
+   cm.Items.Add(tss);
+   cm.Items.Add(tsl);
+   ctb.Name = bn.ToString();
+   ctb.Size = new Size(100, 25);
+   ctb.udl = ni + 3;
+   ctb.aml = ni;
+   a1 = ath_blist.Find(p => p.num == bn);
+   if (a1 is object)
+   {
+    Max_rec[a1.num] = a1.max_lines;
+    ctb.Value = a1.max_lines;
+   }
+
+   cm.Items.Add(ctb);
+   ctb.ValueChanged += Cudchange;
+  }
+
+  private void Set_Size(int Xval, int Yval)
+  {
+   int Oldmax = MaximumSize.Height;
+   MinimumSize = new Size(Xval, Originaly + H_delta);
+   MaximumSize = new Size(0, 0);
+   Size = new Size(Xval, Yval);
+   if (Pe == null)
+    MaximumSize = new Size(Xval, Yval);
+   else
+    MaximumSize = new Size(Xval, Pe.Bottom + H_delta + 2 * Ymargin);
+  }
+  private GroupBox gen_gb(int blockno, int xpos, int ypos)
+  {
+   int tboxsz = 20;
+
+   ToolStripMenuItem tsi;
+   ToolStripMenuItem ins;
+   ToolStripMenuItem swp;
+   ContextMenuStrip cm;
+   GroupBox obox;
+
+   var bi = new Blk_info() { num = blockno };
+
+   blocks[blockno] = bi;
+   Max_rec[blockno] = 0;
+   fieldsmr["MR" + blockno.ToString() + ":"] = blockno;
+
+   obox = new GroupBox()
+   {
+    Size = new Size(Xsize, Ysize),
+    Location = new Point(xpos, ypos),
+    Name = "GB" + blockno.ToString(),
+    Tag = blockno
+   };
+
+   gpn[blockno] = obox.Name;
+   cm = new ContextMenuStrip();
+   cm.Leave += Cm_leave;
+   tsi = new ToolStripMenuItem()
+   {
+    Text = "Drop This Block",
+    Name = blockno.ToString(),
+    Tag = 0
+   };
+   tsi.Click += Menudrp_Click;
+   cm.Items.Add(tsi);
+   ins = new ToolStripMenuItem()
+   {
+    Text = "Insert Block Before",
+    Name = blockno.ToString(),
+    Tag = 1
+   };
+   ins.Click += Menuins_Click;
+   cm.Items.Add(ins);
+   swp = new ToolStripMenuItem()
+   {
+    Text = "Swap Block Before",
+    Name = blockno.ToString(),
+    Tag = 2
+   };
+   swp.Click += Menuswp_Click;
+   cm.Items.Add(swp);
+   obox.ContextMenuStrip = cm;
+   Setupdn(ref cm, blockno, cm.Items.Count);
+   var hbox = new TextBox()
+   {
+    Text = " ",
+    Size = new Size(Xsize - 2 * Ymargin, tboxsz),
+    Location = new Point(Ymargin, margin3),
+    Name = obox.Name + "H:",
+    Tag = blockno,
+    Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Bold, GraphicsUnit.Point),
+    Enabled = false
+   };
+   gph[blockno] = hbox.Name;
+   fieldsgb.Add(hbox.Name);
+   hbox.Enter += Textbox_enter;
+   hbox.Leave += Leave_fld;
+   cm = new ContextMenuStrip();
+   cm.Leave += Cm_leave;
+   tsi = new ToolStripMenuItem()
+   {
+    Text = "Drop This Block",
+    Name = blockno.ToString()
+   };
+   tsi.Click += Menudrp_Click;
+   cm.Items.Add(tsi);
+   ins = new ToolStripMenuItem()
+   {
+    Text = "Insert Block Before",
+    Name = blockno.ToString()
+   };
+   ins.Click += Menuins_Click;
+   cm.Items.Add(ins);
+   swp = new ToolStripMenuItem()
+   {
+    Text = "Swap Block Before",
+    Name = blockno.ToString()
+   };
+   swp.Click += Menuswp_Click;
+   cm.Items.Add(swp);
+   Setupdn(ref cm, blockno, cm.Items.Count);
+   hbox.ContextMenuStrip = cm;
+   obox.Controls.Add(hbox);
+   var rbox = new RichTextBox()
+   {
+    Text = " ",
+    WordWrap = false,
+    Size = new Size(Xsize - 2 * Ymargin, Ysize - 2 * Ymargin - margin3 - tboxsz),
+    Location = new Point(Ymargin, tboxsz + Ymargin + margin3),
+    Name = obox.Name + "B:",
+    Font = new Font("Calibri", 8.25F, System.Drawing.FontStyle.Regular, GraphicsUnit.Point),
+    Enabled = false
+   };
+   gpb[blockno] = rbox.Name;
+   fieldsgb.Add(rbox.Name);
+   rbox.Enter += Rtbbox_enter;
+   rbox.Leave += Leave_fld;
+   cm = new ContextMenuStrip();
+   cm.Leave += Cm_leave;
+   tsi = new ToolStripMenuItem()
+   {
+    Text = "Drop This Block",
+    Name = blockno.ToString()
+   };
+   tsi.Click += Menudrp_Click;
+   cm.Items.Add(tsi);
+   ins = new ToolStripMenuItem()
+   {
+    Text = "Insert Block Before",
+    Name = blockno.ToString()
+   };
+   ins.Click += Menuins_Click;
+   cm.Items.Add(ins);
+   swp = new ToolStripMenuItem()
+   {
+    Text = "Swap Block Before",
+    Name = blockno.ToString()
+   };
+   swp.Click += Menuswp_Click;
+   cm.Items.Add(swp);
+   Setupdn(ref cm, blockno, cm.Items.Count);
+   rbox.ContextMenuStrip = cm;
+   obox.Controls.Add(rbox);
+   return obox;
+  }
+
+  private bool Check_lines()
+  {
+   string[] li;
+   string lis;
+   var lin = new List<string>();
+   int lno = 0;
+   int yl = 0;
+   int lin_count = 0;
+   int y_space_needed = 0;
+   var elines = new Dictionary<int, int>();
+   yl = label_header;
+   foreach (Control cb in Controls)
+   {
+    if (!cb.Name.StartsWith("GB"))
+    {
+     continue;
+    }
+
+    if (string.IsNullOrEmpty(cb.Controls[0].Text) | string.IsNullOrEmpty(cb.Controls[1].Text))
+    {
+     continue;
+    }
+
+    int bn = (from kvp in gpn
+              where (kvp.Value ?? "") == (cb.Name ?? "")
+              select kvp).First().Key;
+    y_space_needed = nlead * 2;
+    if (currenty > label_header)
+    {
+     y_space_needed += nlead / 2;
+    }
+
+    if (ylimit - currenty < y_space_needed)
+    {
+     lno += 1;
+     yl = label_header;
+    }
+
+    if (currenty > label_header)
+    {
+     yl += nlead / 2;
+    }
+
+    yl += nlead;
+    lis = cb.Controls[1].Text;
+    elines.Clear();
+    if ((lines_setting ?? "") == "Label")
+    {
+     lis = this.Adjust_lines(lis, "File");
+    }
+
+    lis = Adjust_lines(lis, "Label", elines);
+    li = Regex.Split(lis, @"\r\n|\n");
+    int lic = li.Count();
+    if (Max_rec[bn] > 0 & lic > Max_rec[bn])
+    {
+     lic = Max_rec[bn];
+     int iadj = 0;
+     foreach (KeyValuePair<int, int> kvp in elines)
+     {
+      if (kvp.Key <= lic)
+      {
+       iadj = iadj + kvp.Value;
+      }
+     }
+
+     lic = lic + iadj;
+    }
+
+    for (int i = 0, loopTo = li.Count() - 1; i <= loopTo; i += 1)
+    {
+     yl += nlead;
+     lin_count += 1;
+     if (ylimit - yl < nlead)
+     {
+      lno += 1;
+      yl = label_header;
+      if (lno > labels_number)
+      {
+       break;
+      }
+     }
+    }
+   }
+
+   if (lin_count > total_lines)
+   {
+    DialogResult Response;
+    Response = MessageBox.Show((lin_count - total_lines).ToString() + " lines will not fit on the labels", "Continue With Print", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+    if (Response == DialogResult.Cancel)
+    {
+     return false;
+    }
+    else
+    {
+     return true;
+    }
+   }
+   else
+   {
+    return true;
+   }
+  }
+
+  public async Task<string> Get_Eval(MPC_key Mk)
+  {
+   DateTimeOffset nw = new DateTimeOffset();
+
+   var key = Registry.CurrentUser.OpenSubKey(@"Software\Medical_Profile", true);
+   string salt;
+   string New_Eval = null;
+   Ckup_Return mcd;
+   var aws_body = new Dictionary<string, object>();
+
+   nw = DateTime.UtcNow;
+   nw = nw.AddYears(1);
+   IDateTimeProvider provider = new UtcDateTimeProvider();
+
+   string Cid = key.GetValue("Cid", null).ToString();
+
+   if (string.IsNullOrEmpty(Cid))
+    return null;
+
+   string Cid_encrypted = Ede.Encrypt(Cid, Ede.Scramble(enck));
+   salt = Ede.Getsalt(Cid_encrypted);
+
+   var payload = new Dictionary<string, object>() { { "aud", "http://medicalprofilecard.com" }, { "exp", nw.ToUnixTimeSeconds() }, { "update", Cid_encrypted } };
+
+   payload["cid"] = Cid;
+   payload["User_Name"] = Environment.UserName;
+   payload["Machine_Name"] = Environment.MachineName;
+
+
+   aws_body["vector_code"] = "4162";
+   Application.UseWaitCursor = true;
+
+   // Mk.Url = "https://pu0r0ghtw8.execute-api.us-east-2.amazonaws.com/dev";
+
+   mcd = await Aws.Update_aysnc(Mk.Url, enck, salt, payload, aws_body);
+   Application.UseWaitCursor = false;
+
+   if (!string.IsNullOrEmpty(mcd.eval))
+   {
+    New_Eval = Ede.Decrypt(mcd.eval, Ede.Scramble(enck), 18926);
+    if (!string.IsNullOrEmpty(New_Eval))
+    {
+     key.SetValue("eval", New_Eval);
+    }
+   }
+   return New_Eval;
+  }
+
+  public Dictionary<string, object> Gen_Claims()
+  {
+   var nw = DateTimeOffset.UtcNow;
+
+#if DEBUG
+   var ew = nw.AddYears(1);
+#else
+   var ew = nw.AddMinutes(5);
+#endif
+
+   IDateTimeProvider provider = new UtcDateTimeProvider();
+   var payload = new Dictionary<string, object>() { { "aud", "http: //medicalprofilecard.com" }, { "exp", ew.ToUnixTimeSeconds() }, { "iss", Mpck.Email }, { "label", drive_label }, { "key", Mpck.Mkey } };
+   if (file_access)
+   {
+    payload["cid"] = Ede.Encrypt(cid, Set_key(Mpck.Secret, Mpck.Dlab), Convert.ToInt32(Mpck.Dlab.Substring(3)) + Mpck.Iterations);
+    payload["f1t"] = USB_Ftime.ToUnixTimeSeconds();
+   }
+
+   if (ftime is object && Convert.ToInt32(ftime) > 0)
+   {
+    payload["f1t"] = ftime;
+   }
+
+#if DEBUG
+   if (testmode)
+   {
+    if (!string.IsNullOrEmpty(User_Name))
+     payload["User_Name"] = User_Name;
+
+    if (!string.IsNullOrEmpty(Machine_Name))
+     payload["Machine_Name"] = Machine_Name;
+   }
+   else
+   {
+#endif
+    payload["User_Name"] = Environment.UserName;
+    payload["Machine_Name"] = Environment.MachineName;
+#if DEBUG
+   }
+#endif
+   return payload;
+  }
+
+  private void Sb_changed(object sender, EventArgs e)
+  {
+   Pn.Top = -Sb.Value;
+   Vertical_Scroll_Position = Sb.Value;
+  }
+
+  private void Pn_sizechanged(object sender, EventArgs e)
+  {
+   Sb.ValueChanged -= Sb_changed;
+   Application.DoEvents();
+   Sb.Maximum = Pn.Height;
   }
 
   public string Format_phone(ref string s1)
