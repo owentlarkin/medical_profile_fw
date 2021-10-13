@@ -1,4 +1,4 @@
-﻿using DYMO.Label.Framework;
+﻿//using DYMO.Label.Framework;
 using JR.Utils.GUI.Forms;
 using Newtonsoft.Json;
 using System.IO;
@@ -16,42 +16,48 @@ using global::Amazon.DynamoDBv2;
 using global::Amazon.DynamoDBv2.DocumentModel;
 using JWT;
 using Microsoft.Win32;
+using Awsstd;
 
 namespace Medical_Profile
 {
  public partial class Form1
  {
   //private DieCutLabel Label;
-  private StyledTextBuilder stb = new StyledTextBuilder();
-  public StyledTextBuilder htb = new StyledTextBuilder();
-  public StyledTextBlock lt;
+  //tyledTextBuilder stb = new StyledTextBuilder();
+  //public StyledTextBuilder htb = new StyledTextBuilder();
+ // public StyledTextBlock lt;
   public int ltline;
   public int labelno = 0;
-  public FontInfo reg_font;
-  public FontInfo rp1_font;
-  public FontInfo bld_font;
-  public FontInfo bp1_font;
-  public FontInfo itl_font;
+  //public FontInfo reg_font;
+  //public FontInfo rp1_font;
+  //public FontInfo bld_font;
+  //public FontInfo bp1_font;
+  //public FontInfo itl_font;
   public int lines = 12;
   public double points = 6.0;
   public string printerName;
-  public IPrinters pnames;
-  public IPrinter printer;
+ // public IPrinters pnames;
+//  public IPrinter printer;
   public float name_length = 0.0F;
   public List<FileInfo> fi = new List<FileInfo>();
-  public FontInfo nfnt = new FontInfo("Calibri", 12.0, DYMO.Label.Framework.FontStyle.Bold);
-  public FontInfo lfnt = new FontInfo("Calibri", 9.0, DYMO.Label.Framework.FontStyle.Bold);
+  //public FontInfo nfnt = new FontInfo("Calibri", 12.0, DYMO.Label.Framework.FontStyle.Bold);
+  //public FontInfo lfnt = new FontInfo("Calibri", 9.0, DYMO.Label.Framework.FontStyle.Bold);
   public string flsort = "Date";
   public string enck = null;
   public string read_patient;
 
-  public List<Byte[]> Call_Generate(bool Print_flag=false)
+  public List<Byte[]> Call_Generate(bool Print_flag = false)
   {
-   List<string> B = null;
    string Phone_number = null;
    string P1 = @"(\(??\d\d\d\)??[\s|-]\d\d\d-\d\d\d\d)";
    string P2 = @"(\d\d\d-\d\d\d\d)";
    Match M1;
+
+   foreach (int j in Dlab.Blocks.Keys)
+   {
+    Dlab.Blocks[j].Hdr = "";
+    Dlab.Blocks[j].Bdy.Clear();
+   }
 
    Dlab.Patient = Patient.Text;
 
@@ -112,23 +118,39 @@ namespace Medical_Profile
    {
     int Bnum = K.Key;
     GroupBox Gb = Grpblocks[Bnum];
-    B = new List<string>();
 
-    if (string.IsNullOrEmpty(Gb.Controls[0].Text))
-     B.Add(string.Empty);
-    else
-     B.Add(Gb.Controls[0].Text);
+    if (!string.IsNullOrEmpty(Gb.Controls[0].Text))
+     Dlab.Blocks[Bnum].Hdr = Gb.Controls[0].Text;
 
     RichTextBox Rb = (RichTextBox)Gb.Controls[1];
 
     if (Rb.Lines.Length > 0)
-     B.AddRange(Rb.Lines);
-
-    Dlab.Blocks.Add(B);
+     Dlab.Blocks[Bnum].Bdy = Rb.Lines.ToList();
    }
 
-   return Dlab.Generate(6,Print_flag);
+   string logfile = @"c:\users\bud\medical_profile.log";
+   using (var writer = new StreamWriter(logfile, true))
+   {
+    foreach (int K in Dlab.Blocks.Keys)
+    {
+     writer.WriteLine("[" + K.ToString() + "] Hdl[" + Dlab.Blocks[K].Hdr.Length.ToString() + "] [" + Dlab.Blocks[K].Hdr + "]");
+     for (int l = 0; l < Dlab.Blocks[K].Bdy.Count; l++)
+     {
+      writer.WriteLine("   [" + l.ToString() + "] Bll[" + Dlab.Blocks[K].Bdy[l].Length.ToString() + "] [" + Dlab.Blocks[K].Bdy[l] + "]");
+     }
+    }
+   }
+
+   string Dsfile = @"c:\users\bud\Dlab.json";
+   string Ds = JsonConvert.SerializeObject(Dlab, Formatting.Indented);
+   using (var writer = new StreamWriter(Dsfile, true))
+   {
+    writer.WriteLine(Ds);
+   }
+
+    return Dlab.Generate(6, Print_flag);
   }
+
   public bool Check_altered()
   {
    DialogResult res;
@@ -245,7 +267,7 @@ namespace Medical_Profile
 
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
   }
- 
+
   public void Set_saved_items(List<Dsave> ds, bool preserve = false)
   {
    string dss = null;
@@ -282,7 +304,7 @@ namespace Medical_Profile
         {
          d.Name = dec_name;
         }
-        
+
         break;
        }
 
@@ -907,7 +929,7 @@ namespace Medical_Profile
     lab1["secph_title:"] = sp.Text;
    }
 
-   foreach(KeyValuePair<string,List<string>> K  in l2.blks)
+   foreach (KeyValuePair<string, List<string>> K in l2.blks)
    {
     var blk = new Blk_entry()
     {
@@ -961,7 +983,7 @@ namespace Medical_Profile
 
    Set_empgb();
    Data_altered = false;
-//   Generate_labels();
+   //   Generate_labels();
    return;
   }
 
@@ -1030,7 +1052,7 @@ namespace Medical_Profile
      labgb[gph[bnum]] = sb.header;
      labgb[gpb[bnum]] = sb.body;
      bl_used[bnum] = bl_available[bnum];
-     bl_available.Remove(bnum);     
+     bl_available.Remove(bnum);
     }
    }
 
@@ -1159,7 +1181,7 @@ namespace Medical_Profile
     }
     Panels_delete();
 
- //   Reset_labels();
+    //   Reset_labels();
 
     Scsiz(Width, Originaly);
 
@@ -2106,7 +2128,7 @@ namespace Medical_Profile
    et = timer.ElapsedMilliseconds.ToString();
    return et;
   }
- 
+
   private float Wlengb(string s, double pts = default)
   {
    float wl = 0.0F;
@@ -2323,16 +2345,16 @@ namespace Medical_Profile
    return Convert.ToString(char.ToUpper(value[0])) + value.Substring(1).ToLower();
   }
 
-  public byte[] Render(ILabel label)
-  {
-   ILabelRenderParams renderparams = new LabelRenderParams();
-   renderparams.FlowDirection = DYMO.Label.Framework.FlowDirection.LeftToRight;
-   renderparams.LabelColor = Colors.White;
-   renderparams.ShadowColor = Colors.DarkGray;
-   renderparams.ShadowDepth = 3;
-   renderparams.PngUseDisplayResolution = false;
-   var pngdata = label.RenderAsPng(printer, renderparams);
-   return pngdata;
-  }
+  //public byte[] Render(ILabel label)
+  //{
+  // ILabelRenderParams renderparams = new LabelRenderParams();
+  // renderparams.FlowDirection = DYMO.Label.Framework.FlowDirection.LeftToRight;
+  // renderparams.LabelColor = Colors.White;
+  // renderparams.ShadowColor = Colors.DarkGray;
+  // renderparams.ShadowDepth = 3;
+  // renderparams.PngUseDisplayResolution = false;
+  // var pngdata = label.RenderAsPng(printer, renderparams);
+  // return pngdata;
+  //}
  }
 }

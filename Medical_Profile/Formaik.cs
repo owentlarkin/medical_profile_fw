@@ -21,6 +21,7 @@ namespace Medical_Profile
   private string key_encrypted;
   private string installation_url = "https://2xi513e85m.execute-api.us-east-2.amazonaws.com/Dev";
 
+  private static Iaws Aws = Awsstd.AwsFactory.GetAws();
   private void Done_Click(object sender, EventArgs e)
   {
    Close();

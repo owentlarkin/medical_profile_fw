@@ -12,6 +12,7 @@ namespace Medical_Profile
  {
   public MPClabel.ILabint Dlab = LabFactory.GetLab();
   public Ienc256 Ede = EncFactory.GetEnc();
+  public Iaws Aws = Awsstd.AwsFactory.GetAws();
   public Font scr_font = new Font("Calibri", 10.25F, FontStyle.Regular);
   public Font scb_font = new Font("Calibri", 10.25F, FontStyle.Bold);
   public ErrorProvider pidep = new ErrorProvider();
@@ -125,7 +126,6 @@ namespace Medical_Profile
   private Level2_Return L2_ret = null;
   public static string installed_version = null;
   private Panel emppn = null;
-//  private bool Person_loaded = false;
   public string cr =Convert.ToString((char)13);
   public string lftab = Convert.ToString((char)10) + Convert.ToString((char)9);
   public string lf = Convert.ToString((char)10);

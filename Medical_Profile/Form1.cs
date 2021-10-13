@@ -12,14 +12,16 @@ using System.Windows.Forms;
 using global::Amazon;
 using global::Amazon.DynamoDBv2;
 using global::Amazon.DynamoDBv2.DocumentModel;
-using global::DymoSDK.Implementations;
-using global::DYMO.Label.Framework;
+//using global::DymoSDK.Implementations;
+//using global::DYMO.Label.Framework;
 using global::JWT;
 using global::Microsoft.Win32;
 using global::Newtonsoft.Json;
 using System.Text;
 using System.Threading.Tasks;
 using JR.Utils.GUI.Forms;
+using Awsstd;
+using DymoSDK.Implementations;
 
 namespace Medical_Profile
 {
@@ -85,6 +87,17 @@ namespace Medical_Profile
     dept_tbox.Visible = false;
     Visible = false;
 
+    DymoSDK.App.Init();
+    var xx = DymoLabel.Instance;
+
+    try
+    {
+     xx.LoadLabelFromFilePath( Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + @"first.dymo");
+    }
+    catch (Exception Ex)
+    {
+     _ = Ex;
+    }
     var myScreen = Screen.FromControl(this);
 
     var area = myScreen.WorkingArea;
@@ -358,13 +371,13 @@ namespace Medical_Profile
    GroupBox2.ContextMenuStrip = cm;
    points = 8;
 
-   IEnumerable<DymoSDK.Interfaces.IPrinter> Printersx = DymoPrinter.Instance.GetPrinters();
+   List<string>  Printersx = Dlab.Get_Printer_Names();
 
    if (Printersx != null && Printersx.Count() > 0)
    {
-    foreach (DymoSDK.Interfaces.IPrinter P in Printersx)
+    foreach (string P in Printersx)
     {
-     Printers.Items.Add(P.Name);
+     Printers.Items.Add(P);
     }
 
     if (Printers.Items.Count > 0)
@@ -399,7 +412,7 @@ namespace Medical_Profile
    {
     Ettb.Text = start_timer(SW);
    }
-
+   
    Application.UseWaitCursor = true;
    L1_ret = await Aws.Get_Level1_aysnc(Mpck.Url, enck, Mpck.Salt, claims, aws_body);
    Application.UseWaitCursor = false;
