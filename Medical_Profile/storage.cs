@@ -9,6 +9,7 @@ namespace Medical_Profile
 {
  public partial class Form1
  {
+  ILabint Dlab = Labfactory.GetLab();
   public Font scr_font = new Font("Calibri", 10.25F, FontStyle.Regular);
   public Font scb_font = new Font("Calibri", 10.25F, FontStyle.Bold);
   public ErrorProvider pidep = new ErrorProvider();

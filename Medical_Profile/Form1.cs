@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using global::System.ComponentModel;
+using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using global::System.IO;
+using System.IO;
 using System.Linq;
-using global::System.Reflection.Emit;
-using global::System.Text.RegularExpressions;
+using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using global::Amazon;
-using global::Amazon.DynamoDBv2;
-using global::Amazon.DynamoDBv2.DocumentModel;
-using global::DymoSDK.Implementations;
-using global::DYMO.Label.Framework;
-using global::JWT;
-using global::Microsoft.Win32;
-using global::Newtonsoft.Json;
+using Amazon;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DocumentModel;
+using DymoSDK.Implementations;
+//using DYMO.Label.Framework;
+using JWT;
+using Microsoft.Win32;
+using Newtonsoft.Json;
 using System.Text;
 using Enc;
 using System.Threading.Tasks;
@@ -40,10 +40,10 @@ namespace Medical_Profile
   private int Ymargin = 6;
   private int Xmargin = 18;
   private int margin3 = 10;
-  private int label_header = 345;
+  //private int label_header = 345;
   //  private float ll = (float)(3600 / 15.0);
-  private int nlead = 191;
-  private int ylimit = 2386;
+  //private int nlead = 191;
+  //private int ylimit = 2386;
   int Xsize = 365;
   int Ysize = 192;
   int Blockno = 1;
@@ -51,7 +51,7 @@ namespace Medical_Profile
 
   private delegate void InvokeDelegate();
 
-  private bool Preview = false;
+  //private bool Preview = false;
   public MPC_key Mpck = null;
 
 #if DEBUG
@@ -340,188 +340,188 @@ namespace Medical_Profile
    return 0;
   }
 
-  private float bl;
-  private TextObject tb;
-  private int bn;
+ //ate float bl;
+//  private TextObject tb;
+//  private int bn;
 
-  private int New_label(ref DieCutLabel lbl, ref int ln)
-  {
-   float nlen;
-   float rlen;
-   lbl = (DieCutLabel)Framework.Open("mpcb.label");
-   tb = (TextObject)lbl.GetObjectByName("labtext");
-   lbl.DeleteObject(tb);
-   tb = (TextObject)lbl.GetObjectByName("header");
-   stb = new StyledTextBuilder();
-   htb = new StyledTextBuilder();
-   if (!(string.Compare(DOB.Text, "") == 0))
-   {
-    stb.Append("DOB: ", lfnt, Colors.Black);
-    stb.Append(DOB.Text, lfnt, Colors.Black);
-    stb.Append(" ", lfnt, Colors.Black);
-   }
+  //private int New_label(ref DieCutLabel lbl, ref int ln)
+  //{
+  // float nlen;
+  // float rlen;
+  // lbl = (DieCutLabel)Framework.Open("mpcb.label");
+  // tb = (TextObject)lbl.GetObjectByName("labtext");
+  // lbl.DeleteObject(tb);
+  // tb = (TextObject)lbl.GetObjectByName("header");
+  // stb = new StyledTextBuilder();
+  // htb = new StyledTextBuilder();
+  // if (!(string.Compare(DOB.Text, "") == 0))
+  // {
+  //  stb.Append("DOB: ", lfnt, Colors.Black);
+  //  stb.Append(DOB.Text, lfnt, Colors.Black);
+  //  stb.Append(" ", lfnt, Colors.Black);
+  // }
 
-   rlen = Wlengb(stb.StyledText.Text, 9);
-   nlen = Wlengb(Patient.Text + "    ", 9);
-   bl = Wlengb("", 9);
-   bn = (int)((192.375 - (rlen + nlen - bl)) / bl);
-   htb.Append(Patient.Text + "     ", lfnt, Colors.Black);
-   htb.Append(new string(' ', bn), lfnt, Colors.Black);
-   htb.Append(stb.StyledText.Text, lfnt, Colors.Black);
-   tb.StyledText = htb.StyledText;
+  // rlen = Wlengb(stb.StyledText.Text, 9);
+  // nlen = Wlengb(Patient.Text + "    ", 9);
+  // bl = Wlengb("", 9);
+  // bn = (int)((192.375 - (rlen + nlen - bl)) / bl);
+  // htb.Append(Patient.Text + "     ", lfnt, Colors.Black);
+  // htb.Append(new string(' ', bn), lfnt, Colors.Black);
+  // htb.Append(stb.StyledText.Text, lfnt, Colors.Black);
+  // tb.StyledText = htb.StyledText;
 
-   // ltl = 1
+  // // ltl = 1
 
-   ln += 1;
-   return label_header;
-  }
+  // ln += 1;
+  // return label_header;
+  //}
 
-  private void Output_label(ref PrintJob pjob, ref DieCutLabel label, int lno, StyledTextBuilder sb = null)
-  {
-   if (sb is object)
-   {
-    TextObject tb = (TextObject)label.GetObjectByName("labtext");
-    tb.StyledText = sb.StyledText;
-   }
+//  private void Output_label(ref PrintJob pjob, ref DieCutLabel label, int lno, StyledTextBuilder sb = null)
+//  {
+//   if (sb is object)
+//   {
+//    TextObject tb = (TextObject)label.GetObjectByName("labtext");
+//    tb.StyledText = sb.StyledText;
+//   }
 
-   if (Preview)
-   {
-    Pnglablist.Add(Render(label));
-    string lns = "Label" + lno.ToString();
+//   if (Preview)
+//   {
+//    Pnglablist.Add(Render(label));
+//    string lns = "Label" + lno.ToString();
 
-#if DEBUG
-    label.SaveToFile(lns + ".label");
-#endif
-   }
-   else
-   {
-    pjob.AddLabel(label);
-   }
+//#if DEBUG
+//    label.SaveToFile(lns + ".label");
+//#endif
+//   }
+//   else
+//   {
+//    pjob.AddLabel(label);
+//   }
 
-   sb = null;
-   label = null;
-  }
+//   sb = null;
+//   label = null;
+//  }
 
-  private bool Check_lines()
-  {
-   string[] li;
-   string lis;
-   var lin = new List<string>();
-   int lno = 0;
-   int yl = 0;
-   int lin_count = 0;
-   int y_space_needed = 0;
-   var elines = new Dictionary<int, int>();
-   yl = label_header;
-   foreach (Control cb in Controls)
-   {
-    if (!cb.Name.StartsWith("GB"))
-    {
-     continue;
-    }
+  //private bool Check_lines()
+  //{
+  // string[] li;
+  // string lis;
+  // var lin = new List<string>();
+  // int lno = 0;
+  // int yl = 0;
+  // int lin_count = 0;
+  // int y_space_needed = 0;
+  // var elines = new Dictionary<int, int>();
+  // yl = label_header;
+  // foreach (Control cb in Controls)
+  // {
+  //  if (!cb.Name.StartsWith("GB"))
+  //  {
+  //   continue;
+  //  }
 
-    if (string.IsNullOrEmpty(cb.Controls[0].Text) | string.IsNullOrEmpty(cb.Controls[1].Text))
-    {
-     continue;
-    }
+  //  if (string.IsNullOrEmpty(cb.Controls[0].Text) | string.IsNullOrEmpty(cb.Controls[1].Text))
+  //  {
+  //   continue;
+  //  }
 
-    int bn = (from kvp in gpn
-              where (kvp.Value ?? "") == (cb.Name ?? "")
-              select kvp).First().Key;
-    y_space_needed = nlead * 2;
-    if (currenty > label_header)
-    {
-     y_space_needed += nlead / 2;
-    }
+  //  int bn = (from kvp in gpn
+  //            where (kvp.Value ?? "") == (cb.Name ?? "")
+  //            select kvp).First().Key;
+  //  y_space_needed = nlead * 2;
+  //  if (currenty > label_header)
+  //  {
+  //   y_space_needed += nlead / 2;
+  //  }
 
-    if (ylimit - currenty < y_space_needed)
-    {
-     lno += 1;
-     yl = label_header;
-    }
+  //  if (ylimit - currenty < y_space_needed)
+  //  {
+  //   lno += 1;
+  //   yl = label_header;
+  //  }
 
-    if (currenty > label_header)
-    {
-     yl += nlead / 2;
-    }
+  //  if (currenty > label_header)
+  //  {
+  //   yl += nlead / 2;
+  //  }
 
-    yl += nlead;
-    lis = cb.Controls[1].Text;
-    elines.Clear();
-    if ((lines_setting ?? "") == "Label")
-    {
-     lis = this.Adjust_lines(lis, "File");
-    }
+  //  yl += nlead;
+  //  lis = cb.Controls[1].Text;
+  //  elines.Clear();
+  //  if ((lines_setting ?? "") == "Label")
+  //  {
+  //   lis = this.Adjust_lines(lis, "File");
+  //  }
 
-    lis = Adjust_lines(lis, "Label", elines);
-    li = Regex.Split(lis, @"\r\n|\n");
-    int lic = li.Count();
-    if (Max_rec[bn] > 0 & lic > Max_rec[bn])
-    {
-     lic = Max_rec[bn];
-     int iadj = 0;
-     foreach (KeyValuePair<int, int> kvp in elines)
-     {
-      if (kvp.Key <= lic)
-      {
-       iadj = iadj + kvp.Value;
-      }
-     }
+  //  lis = Adjust_lines(lis, "Label", elines);
+  //  li = Regex.Split(lis, @"\r\n|\n");
+  //  int lic = li.Count();
+  //  if (Max_rec[bn] > 0 & lic > Max_rec[bn])
+  //  {
+  //   lic = Max_rec[bn];
+  //   int iadj = 0;
+  //   foreach (KeyValuePair<int, int> kvp in elines)
+  //   {
+  //    if (kvp.Key <= lic)
+  //    {
+  //     iadj = iadj + kvp.Value;
+  //    }
+  //   }
 
-     lic = lic + iadj;
-    }
+  //   lic = lic + iadj;
+  //  }
 
-    for (int i = 0, loopTo = li.Count() - 1; i <= loopTo; i += 1)
-    {
-     yl += nlead;
-     lin_count += 1;
-     if (ylimit - yl < nlead)
-     {
-      lno += 1;
-      yl = label_header;
-      if (lno > labels_number)
-      {
-       break;
-      }
-     }
-    }
-   }
+  //  for (int i = 0, loopTo = li.Count() - 1; i <= loopTo; i += 1)
+  //  {
+  //   yl += nlead;
+  //   lin_count += 1;
+  //   if (ylimit - yl < nlead)
+  //   {
+  //    lno += 1;
+  //    yl = label_header;
+  //    if (lno > labels_number)
+  //    {
+  //     break;
+  //    }
+  //   }
+  //  }
+  // }
 
-   if (lin_count > total_lines)
-   {
-    DialogResult Response;
-    Response = MessageBox.Show((lin_count - total_lines).ToString() + " lines will not fit on the labels", "Continue With Print", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
-    if (Response == DialogResult.Cancel)
-    {
-     return false;
-    }
-    else
-    {
-     return true;
-    }
-   }
-   else
-   {
-    return true;
-   }
-  }
+  // if (lin_count > total_lines)
+  // {
+  //  DialogResult Response;
+  //  Response = MessageBox.Show((lin_count - total_lines).ToString() + " lines will not fit on the labels", "Continue With Print", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+  //  if (Response == DialogResult.Cancel)
+  //  {
+  //   return false;
+  //  }
+  //  else
+  //  {
+  //   return true;
+  //  }
+  // }
+  // else
+  // {
+  //  return true;
+  // }
+  //}
 
-  private void Reset_labels()
-  {
-   var lmni = new List<ToolStripMenuItem>();
-   f3s.Clear();
-   lmni.Clear();
-   foreach (ToolStripMenuItem ts in MenuStrip1.Items)
-   {
-    if (ts.Name.StartsWith("Label"))
-    {
-     lmni.Add(ts);
-    }
-   }
+  //private void Reset_labels()
+  //{
+  // var lmni = new List<ToolStripMenuItem>();
+  // f3s.Clear();
+  // lmni.Clear();
+  // foreach (ToolStripMenuItem ts in MenuStrip1.Items)
+  // {
+  //  if (ts.Name.StartsWith("Label"))
+  //  {
+  //   lmni.Add(ts);
+  //  }
+  // }
 
-   foreach (ToolStripMenuItem ts in lmni)
-    MenuStrip1.Items.Remove(ts);
-  }
+  // foreach (ToolStripMenuItem ts in lmni)
+  //  MenuStrip1.Items.Remove(ts);
+  //}
 
 
   //private void Generate_Labels()
@@ -1885,7 +1885,7 @@ namespace Medical_Profile
   {
    this.SuspendPaint();
    file_clear = true;
-   Reset_labels();
+   //Reset_labels();
    Reset_fields();
    Patient.Text = "";
    Patientid.Text = "";
@@ -2521,9 +2521,11 @@ namespace Medical_Profile
     using (var tbl = new TableLayoutPanel())
     {
      Bitmap i1;
+                 List<Byte[]> Labels;
      fpr.Text = "Labels Preview";
-     Preview = true;
-     Generate_labels();
+   //  Preview = true;
+     Dlab.Generate(6, true);
+                    Labels = Dlab.Images;
      if (Labels.Count < 1)
       return;
      tbl.Name = "Panel_Table";
@@ -2557,7 +2559,7 @@ namespace Medical_Profile
         SizeMode=PictureBoxSizeMode.CenterImage,
         Anchor = AnchorStyles.None
        };
-       using (var MS = new MemoryStream(Labels[i * pccnt + j].Preview))
+       using (var MS = new MemoryStream(Dlab.Images[i * pccnt + j]))
        {
         i1 = (Bitmap)Image.FromStream(MS);
         pb.Image = i1;
@@ -2583,7 +2585,7 @@ namespace Medical_Profile
     }
    }
 
-   Preview = false;
+ //  Preview = false;
   }
 
   private void Editmenuitem_Click(object sender, EventArgs e)
@@ -2712,8 +2714,8 @@ namespace Medical_Profile
 
   private void Printmenuitem_Click(object sender, EventArgs e)
   {
-   Preview = false;
-   Generate_labels();
+ //  Preview = false;
+   Dlab.Generate(6,false);
   }
 
   private void Edit_Keypress(object sender, KeyPressEventArgs e)

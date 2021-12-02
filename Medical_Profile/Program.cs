@@ -35,7 +35,7 @@ namespace Medical_Profile
 
    Mpf = new Form1();
 
-   Dds.Init();
+   //Dds.Init();
 
    Application.Run(Mpf);
   }

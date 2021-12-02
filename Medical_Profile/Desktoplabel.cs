@@ -4,122 +4,26 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Text;
-using Wxmlw;
-using Medical_Profile;
 using DymoSDK.Implementations;
 
 namespace Dymodkl
-{
-
- public static class Dds
- {
-  public static Dymodkl.FontInfo F9b = new FontInfo();
-  public static Dymodkl.FontInfo F9 = new FontInfo();
-  public static Dymodkl.FontInfo F8b = new FontInfo();
-  public static Dymodkl.FontInfo F8 = new FontInfo();
-  public static Dymodkl.FontInfo F12b = new FontInfo();
-  public static Dymodkl.FontInfo F12 = new FontInfo();
-
-  public static Dymodkl.TextObject Rto = new TextObject();
-
-  private static XmlSerializer Serializer = new XmlSerializer(typeof(DesktopLabel));
-
-  public static void Init()
-  {
-   DymoLabel Clabel = new DymoLabel();
-   DesktopLabel DK1 = null;
-   List<TextObject> Lt = new List<TextObject>();
-   Clabel.LoadLabelFromFilePath("Fref.dymo");
-   DK1 = Dds.Destr(Clabel.XMLContent);
-   Lt = DK1.DYMOLabel.DLM.LOS.LTOS;
-   UltraMapper.Mapper mapper = new UltraMapper.Mapper();
-   foreach (TextObject T in Lt)
-   {
-    switch (T.Name)
-    {
-     case "F12":
-      mapper.Map(T.FMTTEXT.LTSS[0].TSPANS[0].FONT, F12b);
-      mapper.Map(T.FMTTEXT.LTSS[0].TSPANS[1].FONT, F12);
-      break;
-     case "F8":
-      mapper.Map(T, Rto);
-      Rto.Name = "Rto";
-      mapper.Map(T.FMTTEXT.LTSS[0].TSPANS[0].FONT, F8b);
-      mapper.Map(T.FMTTEXT.LTSS[0].TSPANS[1].FONT, F8);
-      break;
-     case "F9":
-      mapper.Map(T.FMTTEXT.LTSS[0].TSPANS[0].FONT, F9b);
-      mapper.Map(T.FMTTEXT.LTSS[0].TSPANS[1].FONT, F9);
-      break;
-    }
-   }
-   decimal x = Convert.ToDecimal(Rto.ObjectLayout.DPOINT.Y);
-   string x1 = x.ToString();
-   string x2 = (x+0.1m).ToString();
-  }
-
-  public static DesktopLabel Destr(string Xml)
-  {
-   var test1 = Program.Mpf;
-
-
-   DesktopLabel Dl = new DesktopLabel();
-   using (TextReader reader = new StringReader(Xml))
-   {
-    Dl = (DesktopLabel)Serializer.Deserialize(reader);
-   }
-   return Dl;
-  }
-  
-  public static string Serdtl(DesktopLabel D1, bool bomflag = true)
-  {
-   string Xmlstr = "";
-
-   XmlWriterSettings settings = new XmlWriterSettings();
-   settings.Indent = true;
-   settings.Encoding = new UTF8Encoding(bomflag);
-   settings.NewLineChars = Environment.NewLine;
-   settings.ConformanceLevel = ConformanceLevel.Document;
-
-   var encb = new UTF8Encoding(true);
-
-   using (var stream = new MemoryStream())
-   {
-    using (XmlWriter writer = XmlWriter.Create(stream, settings))
-    {
-     Serializer.Serialize(new XmlWriterEE(writer), D1);
-    }
-
-    byte[] v1 = stream.ToArray();
-
-    Xmlstr = encb.GetString(v1);
-
-    int pos = Xmlstr.IndexOf(@"></DYMOThickness>");
-
-    if (pos > 0)
-     Xmlstr = Xmlstr.Replace(@"></DYMOThickness>", @" />");
-
-    return Xmlstr;
-   }
-  }
- }
-
+{ 
  [XmlRoot(ElementName = "DYMOPoint")]
  public class DYMOPoint
  {
   [XmlElement(ElementName = "X")]
-  public string X { get; set; }
+  public string X { get; set; } = "0";
   [XmlElement(ElementName = "Y")]
-  public string Y { get; set; }
+  public string Y { get; set; } = "0";
  }
 
  [XmlRoot(ElementName = "Size")]
  public class Size
  {
   [XmlElement(ElementName = "Width")]
-  public string Width { get; set; }
+  public string Width { get; set; } = "0";
   [XmlElement(ElementName = "Height")]
-  public string Height { get; set; }
+  public string Height { get; set; } = "0";
  }
 
  [XmlRoot(ElementName = "DYMORect")]
@@ -134,6 +38,17 @@ namespace Dymodkl
  [XmlRoot(ElementName = "Color")]
  public class Color
  {
+  public Color()
+  {
+  }
+  public Color(string a, string r = "0", string g = "0", string b = "0")
+  {
+   A = a;
+   R = r;
+   G = g;
+   B = b;
+  }
+
   [XmlAttribute(AttributeName = "A")]
   public string A { get; set; }
   [XmlAttribute(AttributeName = "R")]
@@ -143,65 +58,77 @@ namespace Dymodkl
   [XmlAttribute(AttributeName = "B")]
   public string B { get; set; }
  }
-
+         
  [XmlRoot(ElementName = "SolidColorBrush")]
  public class SolidColorBrush
  {
   [XmlElement(ElementName = "Color")]
-  public Color Color { get; set; }
+  public Color Color { get; set; } = new Color { A = "1", R = "0", G = "0", B = "0" };
  }
 
  [XmlRoot(ElementName = "BorderColor")]
  public class BorderColor
  {
   [XmlElement(ElementName = "SolidColorBrush")]
-  public SolidColorBrush SolidColorBrush { get; set; }
+  public SolidColorBrush SolidColorBrush { get; set; } = new SolidColorBrush { Color = new Color { A = "1", R = "0", G = "0", B = "0" } };
  }
 
  [XmlRoot(ElementName = "BackgroundBrush")]
  public class BackgroundBrush
  {
   [XmlElement(ElementName = "SolidColorBrush")]
-  public SolidColorBrush SolidColorBrush { get; set; }
+  public SolidColorBrush SolidColorBrush { get; set; } = new SolidColorBrush { Color = new Color { A = "0", R = "1", G = "1", B = "1" } };
  }
 
  [XmlRoot(ElementName = "BorderBrush")]
  public class BorderBrush
  {
   [XmlElement(ElementName = "SolidColorBrush")]
-  public SolidColorBrush SolidColorBrush { get; set; }
+  public SolidColorBrush SolidColorBrush { get; set; } = new SolidColorBrush { Color = new Color { A = "1", R = "0", G = "0", B = "0" } };
  }
 
  [XmlRoot(ElementName = "StrokeBrush")]
  public class StrokeBrush
  {
   [XmlElement(ElementName = "SolidColorBrush")]
-  public SolidColorBrush SolidColorBrush { get; set; }
+  public SolidColorBrush SolidColorBrush { get; set; } = new SolidColorBrush { Color = new Color { A = "1", R = "0", G = "0", B = "0" } };
  }
 
  [XmlRoot(ElementName = "FillBrush")]
  public class FillBrush
  {
   [XmlElement(ElementName = "SolidColorBrush")]
-  public SolidColorBrush SolidColorBrush { get; set; }
+  public SolidColorBrush SolidColorBrush { get; set; } = new SolidColorBrush { Color = new Color { A = "0", R = "0", G = "0", B = "0" } };
  }
 
  [XmlRoot(ElementName = "Brushes")]
  public class Brushes
- {
+ {  
   [XmlElement(ElementName = "BackgroundBrush")]
-  public BackgroundBrush BackgroundBrush { get; set; }
+  public BackgroundBrush BackgroundBrush { get; set; } = new BackgroundBrush();
   [XmlElement(ElementName = "BorderBrush")]
-  public BorderBrush BorderBrush { get; set; }
+  public BorderBrush BorderBrush { get; set; } = new BorderBrush();
   [XmlElement(ElementName = "StrokeBrush")]
-  public StrokeBrush StrokeBrush { get; set; }
+  public StrokeBrush StrokeBrush { get; set; } = new StrokeBrush();
   [XmlElement(ElementName = "FillBrush")]
-  public FillBrush FillBrush { get; set; }
+  public FillBrush FillBrush { get; set; } = new FillBrush();
  }
 
  [XmlRoot(ElementName = "DYMOThickness")]
  public class DYMOThickness
  {
+  public DYMOThickness()
+  {
+  }
+
+  public DYMOThickness(string left, string top, string right, string bottom)
+  {
+   Left = left;
+   Top = top;
+   Right = right;
+   Bottom = bottom;
+  }
+
   [XmlAttribute(AttributeName = "Left")]
   public string Left { get; set; }
   [XmlAttribute(AttributeName = "Top")]
@@ -265,13 +192,13 @@ namespace Dymodkl
  public class FormattedText
  {
   [XmlElement(ElementName = "FitMode")]
-  public string FitMode { get; set; }
+  public string FitMode { get; set; } = "None";
   [XmlElement(ElementName = "HorizontalAlignment")]
-  public string HorizontalAlignment { get; set; }
+  public string HorizontalAlignment { get; set; } = "Left";
   [XmlElement(ElementName = "VerticalAlignment")]
-  public string VerticalAlignment { get; set; }
+  public string VerticalAlignment { get; set; } = "Top";
   [XmlElement(ElementName = "IsVertical")]
-  public string IsVertical { get; set; }
+  public string IsVertical { get; set; } = "False";
   [XmlElement(ElementName = "LineTextSpan")]
   public List<LineTextSpan> LTSS { get; set; } = new List<LineTextSpan>();
  }
@@ -279,6 +206,16 @@ namespace Dymodkl
  [XmlRoot(ElementName = "ObjectLayout")]
  public class ObjectLayout
  {
+  public ObjectLayout()
+  {
+  }
+
+  public ObjectLayout(DYMOPoint dPOINT, Size size)
+  {
+   DPOINT = dPOINT;
+   Size = size;
+  }
+
   [XmlElement(ElementName = "DYMOPoint")]
   public DYMOPoint DPOINT { get; set; }
   [XmlElement(ElementName = "Size")]
@@ -291,29 +228,29 @@ namespace Dymodkl
   [XmlElement(ElementName = "Name")]
   public string Name { get; set; }
   [XmlElement(ElementName = "Brushes")]
-  public Brushes Brushes { get; set; }
+  public Brushes Brushes { get; set; } = new Brushes();
   [XmlElement(ElementName = "Rotation")]
-  public string Rotation { get; set; }
+  public string Rotation { get; set; } = "Rotation0";
   [XmlElement(ElementName = "OutlineThickness")]
-  public string OutlineThickness { get; set; }
+  public string OutlineThickness { get; set; } = "1";
   [XmlElement(ElementName = "IsOutlined")]
-  public string IsOutlined { get; set; }
+  public string IsOutlined { get; set; } = "False";
   [XmlElement(ElementName = "BorderStyle")]
-  public string BorderStyle { get; set; }
+  public string BorderStyle { get; set; } = "SolidLine";
   [XmlElement(ElementName = "Margin")]
-  public Margin Margin { get; set; }
+  public Margin Margin { get; set; } = new Margin { DYMOThickness = new DYMOThickness("0", "0", "0", "0") };
   [XmlElement(ElementName = "HorizontalAlignment")]
-  public string HorizontalAlignment { get; set; }
+  public string HorizontalAlignment { get; set; } = "Left";
   [XmlElement(ElementName = "VerticalAlignment")]
-  public string VerticalAlignment { get; set; }
+  public string VerticalAlignment { get; set; } = "Top";
   [XmlElement(ElementName = "FitMode")]
-  public string FitMode { get; set; }
+  public string FitMode { get; set; } = "None";
   [XmlElement(ElementName = "IsVertical")]
-  public string IsVertical { get; set; }
+  public string IsVertical { get; set; } = "False";
   [XmlElement(ElementName = "FormattedText")]
-  public FormattedText FMTTEXT { get; set; }
+  public FormattedText FMTTEXT { get; set; } = new FormattedText();
   [XmlElement(ElementName = "ObjectLayout")]
-  public ObjectLayout ObjectLayout { get; set; }
+  public ObjectLayout ObjectLayout { get; set; } = new ObjectLayout { DPOINT = new DYMOPoint(), Size = new Size() };
  }
 
  [XmlRoot(ElementName = "FixedTextSpan")]
@@ -432,6 +369,5 @@ namespace Dymodkl
   [XmlAttribute(AttributeName = "Version")]
   public string Version { get; set; }
  }
-
 }
 

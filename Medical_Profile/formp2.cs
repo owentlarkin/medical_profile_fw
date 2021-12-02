@@ -1,4 +1,4 @@
-﻿using DYMO.Label.Framework;
+﻿//using DYMO.Label.Framework;
 using JR.Utils.GUI.Forms;
 using Newtonsoft.Json;
 using System.IO;
@@ -12,37 +12,39 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Enc;
+using DymoSDK.Interfaces;
+using System.Reflection.Emit;
 
 namespace Medical_Profile
 {
  public partial class Form1
  {
-  private DieCutLabel Label;
-  private StyledTextBuilder stb = new StyledTextBuilder();
-  public StyledTextBuilder htb = new StyledTextBuilder();
-  public StyledTextBlock lt;
-  public int ltline;
-  public int labelno = 0;
-  public FontInfo reg_font;
-  public FontInfo rp1_font;
-  public FontInfo bld_font;
-  public FontInfo bp1_font;
-  public FontInfo itl_font;
+  //private DieCutLabel Label;
+  //private StyledTextBuilder stb = new StyledTextBuilder();
+  //public StyledTextBuilder htb = new StyledTextBuilder();
+  //public StyledTextBlock lt;
+  //public int ltline;
+  //public int labelno = 0;
+  //public FontInfo reg_font;
+  //public FontInfo rp1_font;
+  //public FontInfo bld_font;
+  //public FontInfo bp1_font;
+  //public FontInfo itl_font;
   public int lines = 12;
   public double points = 6.0;
   public string printerName;
-  public IPrinters pnames;
+  public IPrinter pnames;
   public IPrinter printer;
-//  public ILabelWriterPrinter labelWriterPrinter;
-//  public ILabelWriterPrintParams lprintparams;
-//  public PrintJob pjob;
+  //  public ILabelWriterPrinter labelWriterPrinter;
+  //  public ILabelWriterPrintParams lprintparams;
+  //  public PrintJob pjob;
   public float name_length = 0.0F;
   public List<FileInfo> fi = new List<FileInfo>();
-  public FontInfo nfnt = new FontInfo("Calibri", 12.0, DYMO.Label.Framework.FontStyle.Bold);
-  public FontInfo lfnt = new FontInfo("Calibri", 9.0, DYMO.Label.Framework.FontStyle.Bold);
+ // public FontInfo nfnt = new FontInfo("Calibri", 12.0, DYMO.Label.Framework.FontStyle.Bold);
+ // public FontInfo lfnt = new FontInfo("Calibri", 9.0, DYMO.Label.Framework.FontStyle.Bold);
   public string flsort = "Date";
   public string enck = null;
-  public string read_patient;  
+  public string read_patient;
   public bool Check_altered()
   {
    DialogResult res;
@@ -159,7 +161,7 @@ namespace Medical_Profile
 
    dsaves.SelectedIndexChanged += Dsaves_SelectedIndexChanged;
   }
- 
+
   public void Set_saved_items(List<Dsave> ds, bool preserve = false)
   {
    string dss = null;
@@ -665,7 +667,7 @@ namespace Medical_Profile
     lab1["secph_title:"] = sp.Text;
    }
 
-   foreach(KeyValuePair<string,List<string>> K  in l2.blks)
+   foreach (KeyValuePair<string, List<string>> K in l2.blks)
    {
     var blk = new Blk_entry()
     {
@@ -719,7 +721,7 @@ namespace Medical_Profile
 
    Set_empgb();
    Data_altered = false;
-//   Generate_labels();
+   //   Generate_labels();
    return;
   }
 
@@ -788,7 +790,7 @@ namespace Medical_Profile
      labgb[gph[bnum]] = sb.header;
      labgb[gpb[bnum]] = sb.body;
      bl_used[bnum] = bl_available[bnum];
-     bl_available.Remove(bnum);     
+     bl_available.Remove(bnum);
     }
    }
 
@@ -916,8 +918,7 @@ namespace Medical_Profile
      currenty = Setcy(Grpblocks[i]);
     }
     Panels_delete();
-
-    Reset_labels();
+    //Reset_labels();
 
     Scsiz(Width, Originaly);
 
@@ -1010,7 +1011,7 @@ namespace Medical_Profile
    et = timer.ElapsedMilliseconds.ToString();
    return et;
   }
- 
+
   private float Wlengb(string s, double pts = default)
   {
    float wl = 0.0F;
@@ -1160,6 +1161,91 @@ namespace Medical_Profile
    return string.Join("\r\n", lst);
   }
 
+  public int Call_Generate()
+  {
+   List<string> B = null;
+   string Phone_number = null;
+   string P1 = @"(\(??\d\d\d\)??[\s|-]\d\d\d-\d\d\d\d)";
+   string P2 = @"(\d\d\d-\d\d\d\d)";
+   Match M1;
+
+   Dlab.Patient = Patient.Text;
+
+   Dlab.Phone = Phone.Text ?? string.Empty;
+
+   Dlab.Address.AddRange(address.Lines);
+
+   Dlab.DOB = DOB.Text ?? string.Empty;
+
+   string dname = priph.Text;
+
+   if (prv_combo.Items.Count > 0)
+    dname = prv_combo.Text;
+
+   if (!string.IsNullOrEmpty(dname))
+   {
+    Dlab.PPtitle = lab1["priph_title:"];
+
+    Phone_number = string.Empty;
+    M1 = Regex.Match(dname, P1);
+    if (M1.Success)
+    {
+     Phone_number = M1.Value;
+     dname = dname.Replace(Phone_number, string.Empty);
+    }
+
+    if (!M1.Success)
+    {
+     M1 = Regex.Match(dname, P2);
+     if (M1.Success)
+     {
+      Phone_number = M1.Value;
+      dname = dname.Replace(Phone_number, string.Empty);
+     }
+    }
+
+    if (!string.IsNullOrEmpty(Phone_number))
+    {
+     Dlab.PPphone = Phone_number;
+    }
+
+    Dlab.PPname = dname;
+   }
+
+   Dlab.Insurance = ins.Text ?? string.Empty;
+
+   if (lab1.ContainsKey("secph:"))
+   {
+    Dlab.SPtitle = lab1["secph_title:"];
+    Dlab.SPname = secph.Text;
+   }
+
+   Dlab.Econtact = econtact.Text ?? string.Empty;
+
+   Dlab.Printer = Printers.SelectedItem.ToString();
+
+   foreach (KeyValuePair<int, string> K in bl_used)
+   {
+    int Bnum = K.Key;
+    GroupBox Gb = Grpblocks[Bnum];
+    B = new List<string>();
+
+    if (string.IsNullOrEmpty(Gb.Controls[0].Text))
+     B.Add(string.Empty);
+    else
+     B.Add(Gb.Controls[0].Text);
+
+    RichTextBox Rb = (RichTextBox)Gb.Controls[1];
+
+    if (Rb.Lines.Length > 0)
+     B.AddRange(Rb.Lines);
+
+    Dlab.Blocks.Add(B);
+   }
+
+   Dlab.Generate(6);
+   return 0;
+  }
   private int Setcolor(int bn, int nl)
   {
    RichTextBox bx = null;
@@ -1227,16 +1313,16 @@ namespace Medical_Profile
    return Convert.ToString(char.ToUpper(value[0])) + value.Substring(1).ToLower();
   }
 
-  public byte[] Render(ILabel label)
-  {
-   ILabelRenderParams renderparams = new LabelRenderParams();
-   renderparams.FlowDirection = DYMO.Label.Framework.FlowDirection.LeftToRight;
-   renderparams.LabelColor = Colors.White;
-   renderparams.ShadowColor = Colors.DarkGray;
-   renderparams.ShadowDepth = 3;
-   renderparams.PngUseDisplayResolution = false;
-   var pngdata = label.RenderAsPng(printer, renderparams);
-   return pngdata;
-  }
+  //public byte[] Render(Label label)
+  //{
+  // ILabelRenderParams renderparams = new LabelRenderParams();
+  // renderparams.FlowDirection = DYMO.Label.Framework.FlowDirection.LeftToRight;
+  // renderparams.LabelColor = System.Windows.Media.Colors.White;
+  // renderparams.ShadowColor = System.Windows.Media.Colors.DarkGray;
+  // renderparams.ShadowDepth = 3;
+  // renderparams.PngUseDisplayResolution = false;
+  // var pngdata = label.RenderAsPng(printer, renderparams);
+  // return pngdata;
+  //}
  }
 }
