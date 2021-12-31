@@ -15,7 +15,7 @@ namespace Medical_Profile
  {
   public static Form1 Mpf { get; set; }
 
-  private static Iaws Aws = Awsstd.AwsFactory.GetAws();
+  private static Iaws Aws = Awsstd.Factory.Getinstance();
 
   [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.ControlAppDomain)]
   [STAThread]

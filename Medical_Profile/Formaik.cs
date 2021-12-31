@@ -8,7 +8,7 @@ namespace Medical_Profile
 {
  public partial class Formaik
  {
- private static Enc256.Ienc256 Ede = Enc256.EncFactory.GetEnc();
+ private static Enc256.Ienc256 Ede = Enc256.Factory.Getinstance();
   public Formaik(char[] cv)
   {
    base.Load += Formaik_Load;
@@ -21,7 +21,7 @@ namespace Medical_Profile
   private string key_encrypted;
   private string installation_url = "https://2xi513e85m.execute-api.us-east-2.amazonaws.com/Dev";
 
-  private static Iaws Aws = Awsstd.AwsFactory.GetAws();
+  private static Iaws Aws = Awsstd.Factory.Getinstance();
   private void Done_Click(object sender, EventArgs e)
   {
    Close();

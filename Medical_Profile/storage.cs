@@ -6,13 +6,14 @@ using System.Text;
 using System.Windows.Forms;
 using MPClabel;
 using Enc256;
+using Awsstd;
 namespace Medical_Profile
 {
  public partial class Form1
  {
   public MPClabel.ILabint Dlab = LabFactory.GetLab();
-  public Ienc256 Ede = EncFactory.GetEnc();
-  public Iaws Aws = Awsstd.AwsFactory.GetAws();
+  public Ienc256 Ede = Enc256.Factory.Getinstance();
+  public Iaws Aws = Awsstd.Factory.Getinstance();
   public Font scr_font = new Font("Calibri", 10.25F, FontStyle.Regular);
   public Font scb_font = new Font("Calibri", 10.25F, FontStyle.Bold);
   public ErrorProvider pidep = new ErrorProvider();

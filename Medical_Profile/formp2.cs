@@ -128,7 +128,7 @@ namespace Medical_Profile
      Dlab.Blocks[Bnum].Bdy = Rb.Lines.ToList();
    }
 
-   string logfile = @"c:\users\bud\medical_profile.log";
+   string logfile = @"c:\users\otlarkin\medical_profile.log";
    using (var writer = new StreamWriter(logfile, true))
    {
     foreach (int K in Dlab.Blocks.Keys)
@@ -141,12 +141,12 @@ namespace Medical_Profile
     }
    }
 
-   string Dsfile = @"c:\users\bud\Dlab.json";
-   string Ds = JsonConvert.SerializeObject(Dlab, Formatting.Indented);
-   using (var writer = new StreamWriter(Dsfile, true))
-   {
-    writer.WriteLine(Ds);
-   }
+   //string Dsfile = @"c:\users\otlarkin\Dlab.json";
+   //string Ds = JsonConvert.SerializeObject(Dlab, Formatting.Indented);
+   //using (var writer = new StreamWriter(Dsfile, true))
+   //{
+   // writer.WriteLine(Ds);
+   //}
 
     return Dlab.Generate(6, Print_flag);
   }
